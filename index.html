@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App • Landing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        .phone-frame {
+            width: 380px;
+            height: 760px;
+            background: #111827;
+            border-radius: 60px;
+            padding: 12px;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+            position: relative;
+        }
+        
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 48px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .status-bar {
+            height: 44px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            font-size: 13px;
+            color: #111827;
+        }
+        
+        .content {
+            padding: 40px 24px;
+            height: calc(100% - 44px);
+            overflow-y: auto;
+        }
+        
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 28px;
+            background: #111827;
+            border-radius: 20px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen flex items-center justify-center">
+    <div class="text-center">
+        <!-- Optional small header -->
+        <h1 class="text-4xl font-semibold mb-12 tracking-tight">Welcome</h1>
+        
+        <!-- Phone -->
+        <div class="phone-frame mx-auto">
+            <div class="phone-screen">
+                <!-- Status Bar -->
+                <div class="status-bar">
+                    <div>9:41</div>
+                    <div class="flex items-center gap-3">
+                        <span>5G</span>
+                        <span>92%</span>
+                    </div>
+                </div>
+                
+                <!-- Main Content -->
+                <div class="content">
+                    <div class="text-center mb-10">
+                        <div class="w-16 h-16 bg-indigo-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl">
+                            📱
+                        </div>
+                        <h2 class="text-2xl font-semibold text-gray-900">My App</h2>
+                        <p class="text-gray-500 mt-1">Everything you need</p>
+                    </div>
+                    
+                    <!-- Menu Links -->
+                    <div class="space-y-3">
+                        <a href="#" 
+                           class="block w-full bg-zinc-100 hover:bg-zinc-200 transition-colors text-gray-900 font-medium py-5 px-6 rounded-3xl text-left flex items-center gap-4 group">
+                            <span class="text-2xl">🏠</span>
+                            <div>
+                                <div class="font-semibold">Home</div>
+                                <div class="text-sm text-gray-500">Get started</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" 
+                           class="block w-full bg-zinc-100 hover:bg-zinc-200 transition-colors text-gray-900 font-medium py-5 px-6 rounded-3xl text-left flex items-center gap-4 group">
+                            <span class="text-2xl">👤</span>
+                            <div>
+                                <div class="font-semibold">About</div>
+                                <div class="text-sm text-gray-500">Who we are</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" 
+                           class="block w-full bg-zinc-100 hover:bg-zinc-200 transition-colors text-gray-900 font-medium py-5 px-6 rounded-3xl text-left flex items-center gap-4 group">
+                            <span class="text-2xl">⚡</span>
+                            <div>
+                                <div class="font-semibold">Services</div>
+                                <div class="text-sm text-gray-500">What we offer</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" 
+                           class="block w-full bg-zinc-100 hover:bg-zinc-200 transition-colors text-gray-900 font-medium py-5 px-6 rounded-3xl text-left flex items-center gap-4 group">
+                            <span class="text-2xl">📂</span>
+                            <div>
+                                <div class="font-semibold">Portfolio</div>
+                                <div class="text-sm text-gray-500">Our work</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" 
+                           class="block w-full bg-zinc-100 hover:bg-zinc-200 transition-colors text-gray-900 font-medium py-5 px-6 rounded-3xl text-left flex items-center gap-4 group">
+                            <span class="text-2xl">✉️</span>
+                            <div>
+                                <div class="font-semibold">Contact</div>
+                                <div class="text-sm text-gray-500">Get in touch</div>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="mt-12 text-center">
+                        <p class="text-xs text-gray-400">Built with ❤️</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <p class="text-zinc-500 mt-8 text-sm">Scroll inside the phone to see all links • Replace the links later</p>
+    </div>
+</body>
+</html>
