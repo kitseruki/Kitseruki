@@ -9,6 +9,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/postprocessing/UnrealBloomPass.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
@@ -32,7 +35,7 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: -1;
-            opacity: 0.92;
+            opacity: 0.85;
         }
 
         .phone-frame {
@@ -90,7 +93,6 @@
             touch-action: pan-y;
             scroll-behavior: smooth;
         }
-        
         .content::-webkit-scrollbar { display: none; }
 
         .nav-item {
@@ -167,6 +169,7 @@
 
             <!-- Desktop Split -->
             <div class="hidden xl:flex w-full">
+                <!-- Phone -->
                 <div class="w-5/12 border-r border-white/10 bg-[#0a0a0f]/60 flex items-center justify-center p-12">
                     <div class="phone-frame" id="desktop-phone">
                         <div class="phone-screen" id="phone-screen-desktop">
@@ -191,6 +194,7 @@
                     </div>
                 </div>
 
+                <!-- Content Pane -->
                 <div class="flex-1 p-8 lg:p-16 xl:p-20 overflow-auto" id="content-pane">
                     <div id="section-home" class="section active">
                         <div class="max-w-3xl">
@@ -229,19 +233,14 @@
                         </div>
                     </div>
 
-                    <!-- The Boring Stuff -->
                     <div id="section-boring" class="section hidden">
                         <div class="max-w-3xl">
                             <h2 class="title-font text-6xl font-bold tracking-tighter mb-10">The Boring Stuff</h2>
                             <div class="prose prose-invert max-w-none text-lg leading-relaxed">
                                 <h3 class="text-2xl font-semibold mt-8 mb-4">Legal</h3>
                                 <p class="text-zinc-400">Privacy Policy • Terms of Service • Cookie Policy</p>
-                                
                                 <h3 class="text-2xl font-semibold mt-8 mb-4">Company Information</h3>
                                 <p class="text-zinc-400">Kitseruki Studio • Hybrid (Tokyo / Berlin)</p>
-                                
-                                <h3 class="text-2xl font-semibold mt-8 mb-4">Contact &amp; Press</h3>
-                                <p class="text-zinc-400">hello@kitseruki.com • press@kitseruki.com</p>
                             </div>
                         </div>
                     </div>
@@ -251,20 +250,20 @@
     </div>
 
     <script>
-        // (WebGL, haptic, menu, swipe logic remains the same as v5.4)
-        let scene, camera, renderer, particles, mouseX = 0, mouseY = 0;
+        let scene, camera, renderer, composer, particles;
+        let mouseX = 0, mouseY = 0;
 
         function createCircularTexture() {
             const canvas = document.createElement('canvas');
-            canvas.width = 64; canvas.height = 64;
+            canvas.width = 128; canvas.height = 128;
             const ctx = canvas.getContext('2d');
-            const gradient = ctx.createRadialGradient(32, 32, 8, 32, 32, 32);
-            gradient.addColorStop(0, 'rgba(255,255,255,1)');
-            gradient.addColorStop(0.6, 'rgba(100,240,255,0.9)');
-            gradient.addColorStop(1, 'rgba(0,180,255,0)');
-            ctx.fillStyle = gradient;
+            const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 64);
+            grad.addColorStop(0, 'rgba(255,255,255,1)');
+            grad.addColorStop(0.5, 'rgba(120,240,255,0.95)');
+            grad.addColorStop(1, 'rgba(0,160,255,0)');
+            ctx.fillStyle = grad;
             ctx.beginPath();
-            ctx.arc(32, 32, 30, 0, Math.PI * 2);
+            ctx.arc(64, 64, 58, 0, Math.PI * 2);
             ctx.fill();
             return new THREE.CanvasTexture(canvas);
         }
@@ -276,19 +275,21 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
             scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 35;
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
+            camera.position.z = 45;
 
-            const particleCount = 1400;
+            scene.fog = new THREE.Fog(0x050507, 25, 95);
+
+            const particleCount = 1100;
             const geometry = new THREE.BufferGeometry();
             const positions = new Float32Array(particleCount * 3);
             const colors = new Float32Array(particleCount * 3);
 
             for (let i = 0; i < particleCount * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 100;
-                positions[i + 1] = (Math.random() - 0.5) * 100;
+                positions[i] = (Math.random() - 0.5) * 120;
+                positions[i + 1] = (Math.random() - 0.5) * 120;
                 positions[i + 2] = (Math.random() - 0.5) * 80;
-                const color = new THREE.Color().setHSL(0.48 + Math.random() * 0.15, 0.85, 0.75);
+                const color = new THREE.Color().setHSL(0.5 + Math.random() * 0.12, 0.85, 0.75);
                 colors[i] = color.r; colors[i+1] = color.g; colors[i+2] = color.b;
             }
 
@@ -296,36 +297,48 @@
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
             const material = new THREE.PointsMaterial({
-                size: 1.2, vertexColors: true, transparent: true, opacity: 0.9,
-                blending: THREE.AdditiveBlending, depthTest: false,
-                map: createCircularTexture(), alphaTest: 0.1
+                size: 1.4,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending,
+                depthTest: false,
+                map: createCircularTexture()
             });
 
             particles = new THREE.Points(geometry, material);
             scene.add(particles);
 
+            // Post-processing
+            composer = new THREE.EffectComposer(renderer);
+            composer.addPass(new THREE.RenderPass(scene, camera));
+
+            const bloomPass = new THREE.UnrealBloomPass(
+                new THREE.Vector2(window.innerWidth, window.innerHeight),
+                1.4,   // strength
+                0.5,   // radius
+                0.8    // threshold
+            );
+            composer.addPass(bloomPass);
+
             function animate() {
                 requestAnimationFrame(animate);
-                particles.rotation.y += 0.00012;
-                particles.rotation.x += 0.00008;
-                particles.rotation.y += (mouseX * 0.00012);
-                particles.rotation.x += (mouseY * 0.0001);
-                renderer.render(scene, camera);
+                particles.rotation.y += 0.00008;
+                particles.rotation.x += 0.00004;
+                particles.rotation.y += mouseX * 0.0001;
+                particles.rotation.x += mouseY * 0.00008;
+                composer.render();
             }
             animate();
         }
 
+        // Menu Items
         const menuItems = [
             { id: "home", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 9L12 3L21 9V21H3V9Z" fill="#0ea5e9" stroke="#67e8f9" stroke-width="1.5"/><path d="M9 21V13H15V21" stroke="#67e8f9" stroke-width="1.5"/></svg>`, title: "Home", subtitle: "Studio Vision" },
             { id: "projects", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6H20V18H4V6Z" fill="#8b5cf6" stroke="#c4b5fd" stroke-width="1.5"/><path d="M8 10H16M8 14H12" stroke="#c4b5fd" stroke-width="1.5"/></svg>`, title: "Projects", subtitle: "Our Work" },
             { id: "contact", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8L12 13L21 8V19H3V8Z" fill="#ec4899" stroke="#f9a8d4" stroke-width="1.5"/><path d="M3 8L12 13L21 8" stroke="#f9a8d4" stroke-width="1.5"/></svg>`, title: "Contact", subtitle: "Get in Touch" },
             { id: "donate", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21L3 9H21L12 21Z" fill="#eab308" stroke="#fef08c" stroke-width="1.5"/><circle cx="12" cy="8" r="4" fill="#fef08c" opacity="0.9"/></svg>`, title: "Donate", subtitle: "Support Us" },
-            { 
-                id: "boring", 
-                svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#64748b" stroke="#cbd5e1" stroke-width="1.5"/><path d="M14 2V8H20" stroke="#cbd5e1" stroke-width="1.5"/><path d="M9 13H15M9 17H12" stroke="#cbd5e1" stroke-width="1.5"/></svg>`, 
-                title: "The Boring Stuff", 
-                subtitle: "Legal & Info" 
-            }
+            { id: "boring", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#64748b" stroke="#cbd5e1" stroke-width="1.5"/><path d="M14 2V8H20" stroke="#cbd5e1" stroke-width="1.5"/><path d="M9 13H15M9 17H12" stroke="#cbd5e1" stroke-width="1.5"/></svg>`, title: "The Boring Stuff", subtitle: "Legal & Info" }
         ];
 
         let currentIndex = 0;
@@ -369,11 +382,7 @@
             const target = document.getElementById(`section-${section}`);
             if (target) {
                 setTimeout(() => target.classList.add('active'), 10);
-                // Smooth scroll to top of content pane when changing sections
-                document.getElementById('content-pane').scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
+                document.getElementById('content-pane').scrollTo({ top: 0, behavior: 'smooth' });
             }
 
             document.querySelectorAll('#phone-menu-mobile, #phone-menu-desktop').forEach(menu => {
@@ -416,10 +425,11 @@
         });
 
         window.addEventListener('resize', () => {
-            if (camera && renderer) {
+            if (camera && renderer && composer) {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
+                composer.setSize(window.innerWidth, window.innerHeight);
             }
         });
     </script>
