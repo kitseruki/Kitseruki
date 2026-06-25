@@ -13,9 +13,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
         
-        :root {
-            --neon: #00f5ff;
-        }
+        :root { --neon: #00f5ff; }
         
         * { scroll-behavior: smooth; }
         
@@ -27,77 +25,61 @@
             position: relative;
         }
         
-        .title-font {
-            font-family: 'Space Grotesk', sans-serif;
-        }
+        .title-font { font-family: 'Space Grotesk', sans-serif; }
 
         #webgl-background {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             z-index: -1;
-            opacity: 0.9;
+            opacity: 0.92;
         }
 
-        /* Phone Styles */
         .phone-frame {
-            width: 392px;
-            height: 790px;
+            width: 392px; height: 790px;
             background: linear-gradient(145deg, #1a1a2e, #0c0c1a);
             border: 16px solid #111827;
             border-radius: 70px;
-            box-shadow: 
-                0 45px 90px -20px rgba(0, 0, 0, 0.85),
-                inset 0 0 0 1px rgba(255,255,255,0.08),
-                0 0 70px -15px rgba(0, 245, 255, 0.25);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 45px 90px -20px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(255,255,255,0.08), 0 0 70px -15px rgba(0,245,255,0.25);
+            position: relative; overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
         }
-        
-        .phone-frame:hover {
-            transform: scale(1.015) rotate(0.5deg);
-        }
-        
+        .phone-frame:hover { transform: scale(1.015) rotate(0.5deg); }
+
         .phone-screen {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             background: #0a0a0f;
             border-radius: 54px;
             overflow: hidden;
             position: relative;
             border: 12px solid #1e2937;
-            box-shadow: 
-                inset 0 0 0 1px rgba(148, 163, 184, 0.15),
-                0 0 0 1px rgba(15, 23, 42, 0.6);
+            box-shadow: inset 0 0 0 1px rgba(148,163,184,0.15), 0 0 0 1px rgba(15,23,42,0.6);
         }
-        
+
         .dynamic-island {
-            position: absolute;
-            top: 18px;
-            left: 50%;
+            position: absolute; top: 18px; left: 50%;
             transform: translateX(-50%);
-            width: 130px;
-            height: 34px;
+            width: 130px; height: 34px;
             background: #111827;
             border-radius: 40px;
             z-index: 50;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
         }
-        
+
+        .icon-3d {
+            width: 54px; height: 54px;
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7));
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .nav-item:hover .icon-3d {
+            transform: scale(1.18) rotate(12deg);
+        }
+
         .status-bar {
-            height: 52px;
-            background: transparent;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 34px;
-            font-size: 13.5px;
-            color: #e0e0ff;
-            z-index: 40;
-            position: relative;
+            height: 52px; background: transparent;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 34px; font-size: 13.5px; color: #e0e0ff;
+            z-index: 40; position: relative;
         }
         
         .content {
@@ -106,79 +88,59 @@
             scrollbar-width: none;
             padding: 52px 30px 40px;
             touch-action: pan-y;
+            scroll-behavior: smooth;
         }
         
         .content::-webkit-scrollbar { display: none; }
-        
+
         .nav-item {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
         }
-        
-        .nav-item:active {
-            transform: scale(0.96);
-        }
-        
+        .nav-item:active { transform: scale(0.96); }
         .nav-item:hover {
             transform: translateX(14px) scale(1.02);
-            background: rgba(0, 245, 255, 0.12);
-            border-color: rgba(0, 245, 255, 0.35);
+            background: rgba(0,245,255,0.12);
+            border-color: rgba(0,245,255,0.35);
         }
-        
         .active {
-            background: rgba(0, 245, 255, 0.18);
+            background: rgba(0,245,255,0.18);
             border-left: 5px solid var(--neon);
-            box-shadow: 0 10px 30px rgba(0, 245, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0,245,255,0.15);
         }
 
         .section {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: all 0.7s cubic-bezier(0.25, 0.1, 0.25, 1);
+            opacity: 0; transform: translateY(40px);
+            transition: all 0.7s cubic-bezier(0.25,0.1,0.25,1);
+            min-height: 70vh;
         }
-        
         .section.active {
-            opacity: 1;
-            transform: translateY(0);
+            opacity: 1; transform: translateY(0);
         }
 
         .hero-glow {
-            text-shadow: 0 0 50px rgba(0, 245, 255, 0.5),
-                         0 0 90px rgba(0, 245, 255, 0.3);
+            text-shadow: 0 0 50px rgba(0,245,255,0.5), 0 0 90px rgba(0,245,255,0.3);
         }
 
         @media (max-width: 1280px) {
-            .phone-frame {
-                width: 340px;
-                height: 680px;
-                border-width: 12px;
-            }
+            .phone-frame { width: 340px; height: 680px; border-width: 12px; }
             .phone-screen { border-width: 10px; }
             .content { padding: 48px 24px 32px; }
         }
     </style>
 </head>
 <body>
-    <!-- WebGL Background -->
     <canvas id="webgl-background"></canvas>
 
     <div class="max-w-screen-2xl mx-auto relative z-10">
-        <!-- Top Navigation -->
         <header class="border-b border-white/10 py-6 px-8 flex items-center justify-between sticky top-0 z-50 bg-[#050507]/80 backdrop-blur-2xl">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 bg-gradient-to-br from-cyan-400 to-violet-500 rounded-2xl flex items-center justify-center text-lg font-bold shadow-inner">K</div>
                 <h1 class="title-font text-3xl font-semibold tracking-tighter">KITSERUKI</h1>
             </div>
-            
-            <nav class="hidden md:flex items-center gap-10 text-sm font-medium">
-                <a href="#" onclick="switchSection('home')" class="hover:text-cyan-400 transition-colors">Studio</a>
-                <a href="#" onclick="switchSection('work')" class="hover:text-cyan-400 transition-colors">Work</a>
-                <a href="#" onclick="switchSection('services')" class="hover:text-cyan-400 transition-colors">Expertise</a>
-                <a href="#" onclick="switchSection('contact')" class="hover:text-cyan-400 transition-colors">Contact</a>
-            </nav>
         </header>
 
         <div class="flex min-h-[calc(100vh-88px)]">
-            <!-- Mobile / Tablet View -->
+            <!-- Mobile Phone -->
             <div class="xl:hidden flex-1 flex items-center justify-center p-6 bg-[#0a0a0f]/60">
                 <div class="phone-frame mx-auto" id="mobile-phone">
                     <div class="phone-screen" id="phone-screen-mobile">
@@ -193,9 +155,7 @@
                         </div>
                         <div class="content" id="phone-content-mobile">
                             <div class="text-center mb-12">
-                                <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center text-5xl shadow-2xl mb-6">
-                                    ⚔️
-                                </div>
+                                <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center text-5xl shadow-2xl mb-6">⚔️</div>
                                 <h2 class="title-font text-5xl font-bold tracking-tighter">KITSERUKI</h2>
                                 <p class="text-cyan-400 text-sm tracking-[4px] mt-1">EST 2022 • TOKYO / BERLIN</p>
                             </div>
@@ -205,9 +165,8 @@
                 </div>
             </div>
 
-            <!-- Desktop Split Layout -->
+            <!-- Desktop Split -->
             <div class="hidden xl:flex w-full">
-                <!-- Phone -->
                 <div class="w-5/12 border-r border-white/10 bg-[#0a0a0f]/60 flex items-center justify-center p-12">
                     <div class="phone-frame" id="desktop-phone">
                         <div class="phone-screen" id="phone-screen-desktop">
@@ -222,9 +181,7 @@
                             </div>
                             <div class="content" id="phone-content-desktop">
                                 <div class="text-center mb-12">
-                                    <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center text-5xl shadow-2xl mb-6">
-                                        ⚔️
-                                    </div>
+                                    <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center text-5xl shadow-2xl mb-6">⚔️</div>
                                     <h2 class="title-font text-5xl font-bold tracking-tighter">KITSERUKI</h2>
                                     <p class="text-cyan-400 text-sm tracking-[4px] mt-1">EST 2022 • TOKYO / BERLIN</p>
                                 </div>
@@ -234,7 +191,6 @@
                     </div>
                 </div>
 
-                <!-- Content Pane -->
                 <div class="flex-1 p-8 lg:p-16 xl:p-20 overflow-auto" id="content-pane">
                     <div id="section-home" class="section active">
                         <div class="max-w-3xl">
@@ -248,53 +204,45 @@
                             <p class="mt-8 text-2xl text-zinc-300 max-w-2xl">
                                 A premium gaming and digital studio specializing in immersive worlds, cinematic gameplay, and cutting-edge interactive software.
                             </p>
-                            <div class="mt-14 flex flex-wrap gap-4">
-                                <button onclick="switchSection('work')" class="px-10 py-5 bg-white text-black font-semibold rounded-3xl hover:scale-105 active:scale-95 transition-all duration-300 text-lg">
-                                    View Our Work
-                                </button>
-                                <button onclick="switchSection('contact')" class="px-10 py-5 border border-white/40 hover:border-white rounded-3xl transition-all duration-300 text-lg">
-                                    Begin a Project →
-                                </button>
-                            </div>
                         </div>
                     </div>
 
-                    <div id="section-about" class="section hidden">
-                        <h2 class="title-font text-6xl font-bold tracking-tighter mb-10">About Kitseruki</h2>
-                        <div class="max-w-2xl prose prose-invert text-lg leading-relaxed">
-                            <p class="text-zinc-300">Born from a passion for storytelling and technical excellence, Kitseruki brings together visionary creatives to craft unforgettable digital experiences.</p>
-                        </div>
-                    </div>
-
-                    <div id="section-services" class="section hidden">
-                        <h2 class="title-font text-6xl font-bold tracking-tighter mb-12">Our Expertise</h2>
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div class="bg-white/5 border border-white/10 p-9 rounded-3xl hover:border-cyan-400/30 transition-colors">
-                                <h3 class="text-2xl font-semibold mb-3">AAA Game Development</h3>
-                                <p class="text-zinc-400">Unreal Engine 5 • Custom Tools • Cinematic Experiences</p>
-                            </div>
-                            <div class="bg-white/5 border border-white/10 p-9 rounded-3xl hover:border-cyan-400/30 transition-colors">
-                                <h3 class="text-2xl font-semibold mb-3">Immersive Web Experiences</h3>
-                                <p class="text-zinc-400">WebGL • Three.js • Interactive Storytelling</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="section-work" class="section hidden">
-                        <h2 class="title-font text-6xl font-bold tracking-tighter mb-10">Selected Works</h2>
-                        <div class="grid md:grid-cols-2 gap-8">
-                            <div class="group">
-                                <div class="aspect-video bg-gradient-to-br from-violet-900 to-cyan-900 rounded-3xl mb-5 flex items-center justify-center text-7xl transition-transform group-hover:scale-105">🌌</div>
-                                <h3 class="text-2xl font-semibold">KAGE: Shadows Eternal</h3>
-                                <p class="text-zinc-400">Action-Adventure • PC & Console • 2025</p>
-                            </div>
-                        </div>
+                    <div id="section-projects" class="section hidden">
+                        <h2 class="title-font text-6xl font-bold tracking-tighter mb-10">Our Projects</h2>
+                        <p class="text-zinc-400">Content coming soon...</p>
                     </div>
 
                     <div id="section-contact" class="section hidden">
                         <div class="max-w-lg">
-                            <h2 class="title-font text-6xl font-bold tracking-tighter mb-8">Let's Create Something Timeless</h2>
+                            <h2 class="title-font text-6xl font-bold tracking-tighter mb-8">Let's Create Together</h2>
                             <a href="mailto:hello@kitseruki.com" class="block text-4xl hover:text-cyan-400 transition-colors">hello@kitseruki.com</a>
+                        </div>
+                    </div>
+
+                    <div id="section-donate" class="section hidden">
+                        <div class="max-w-lg">
+                            <h2 class="title-font text-6xl font-bold tracking-tighter mb-8">Support Our Vision</h2>
+                            <p class="text-zinc-300 text-lg">Help us continue crafting legendary digital experiences.</p>
+                            <button class="mt-8 px-10 py-5 bg-gradient-to-r from-cyan-400 to-violet-500 text-black font-semibold rounded-3xl text-lg">
+                                Donate Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- The Boring Stuff -->
+                    <div id="section-boring" class="section hidden">
+                        <div class="max-w-3xl">
+                            <h2 class="title-font text-6xl font-bold tracking-tighter mb-10">The Boring Stuff</h2>
+                            <div class="prose prose-invert max-w-none text-lg leading-relaxed">
+                                <h3 class="text-2xl font-semibold mt-8 mb-4">Legal</h3>
+                                <p class="text-zinc-400">Privacy Policy • Terms of Service • Cookie Policy</p>
+                                
+                                <h3 class="text-2xl font-semibold mt-8 mb-4">Company Information</h3>
+                                <p class="text-zinc-400">Kitseruki Studio • Hybrid (Tokyo / Berlin)</p>
+                                
+                                <h3 class="text-2xl font-semibold mt-8 mb-4">Contact &amp; Press</h3>
+                                <p class="text-zinc-400">hello@kitseruki.com • press@kitseruki.com</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -303,9 +251,23 @@
     </div>
 
     <script>
-        // === WebGL Background ===
-        let scene, camera, renderer, particles;
-        let mouseX = 0, mouseY = 0;
+        // (WebGL, haptic, menu, swipe logic remains the same as v5.4)
+        let scene, camera, renderer, particles, mouseX = 0, mouseY = 0;
+
+        function createCircularTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64; canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(32, 32, 8, 32, 32, 32);
+            gradient.addColorStop(0, 'rgba(255,255,255,1)');
+            gradient.addColorStop(0.6, 'rgba(100,240,255,0.9)');
+            gradient.addColorStop(1, 'rgba(0,180,255,0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(32, 32, 30, 0, Math.PI * 2);
+            ctx.fill();
+            return new THREE.CanvasTexture(canvas);
+        }
 
         function initWebGL() {
             const canvas = document.getElementById('webgl-background');
@@ -315,34 +277,28 @@
 
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 30;
+            camera.position.z = 35;
 
-            const particleCount = 1600;
+            const particleCount = 1400;
             const geometry = new THREE.BufferGeometry();
             const positions = new Float32Array(particleCount * 3);
             const colors = new Float32Array(particleCount * 3);
 
             for (let i = 0; i < particleCount * 3; i += 3) {
-                positions[i]     = (Math.random() - 0.5) * 90;
-                positions[i + 1] = (Math.random() - 0.5) * 90;
-                positions[i + 2] = (Math.random() - 0.5) * 90;
-
-                const color = new THREE.Color().setHSL(0.48 + Math.random() * 0.12, 0.9, 0.75);
-                colors[i]     = color.r;
-                colors[i + 1] = color.g;
-                colors[i + 2] = color.b;
+                positions[i] = (Math.random() - 0.5) * 100;
+                positions[i + 1] = (Math.random() - 0.5) * 100;
+                positions[i + 2] = (Math.random() - 0.5) * 80;
+                const color = new THREE.Color().setHSL(0.48 + Math.random() * 0.15, 0.85, 0.75);
+                colors[i] = color.r; colors[i+1] = color.g; colors[i+2] = color.b;
             }
 
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
             const material = new THREE.PointsMaterial({
-                size: 0.13,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.8,
-                blending: THREE.AdditiveBlending,
-                depthTest: false
+                size: 1.2, vertexColors: true, transparent: true, opacity: 0.9,
+                blending: THREE.AdditiveBlending, depthTest: false,
+                map: createCircularTexture(), alphaTest: 0.1
             });
 
             particles = new THREE.Points(geometry, material);
@@ -350,32 +306,33 @@
 
             function animate() {
                 requestAnimationFrame(animate);
-                particles.rotation.y += 0.00015;
+                particles.rotation.y += 0.00012;
                 particles.rotation.x += 0.00008;
-
-                particles.rotation.y += (mouseX * 0.0001);
+                particles.rotation.y += (mouseX * 0.00012);
                 particles.rotation.x += (mouseY * 0.0001);
-
                 renderer.render(scene, camera);
             }
             animate();
         }
 
-        // Haptic Feedback
-        function triggerHaptic(pattern = [12]) {
-            if (navigator.vibrate) navigator.vibrate(pattern);
-        }
-
-        // Menu System
         const menuItems = [
-            { id: "home", icon: "🏠", title: "Home", subtitle: "Studio Vision" },
-            { id: "about", icon: "⚔️", title: "About", subtitle: "Our Philosophy" },
-            { id: "services", icon: "🛠️", title: "Expertise", subtitle: "What We Master" },
-            { id: "work", icon: "🎮", title: "Work", subtitle: "Featured Projects" },
-            { id: "contact", icon: "✉️", title: "Contact", subtitle: "Start a Project" }
+            { id: "home", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 9L12 3L21 9V21H3V9Z" fill="#0ea5e9" stroke="#67e8f9" stroke-width="1.5"/><path d="M9 21V13H15V21" stroke="#67e8f9" stroke-width="1.5"/></svg>`, title: "Home", subtitle: "Studio Vision" },
+            { id: "projects", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6H20V18H4V6Z" fill="#8b5cf6" stroke="#c4b5fd" stroke-width="1.5"/><path d="M8 10H16M8 14H12" stroke="#c4b5fd" stroke-width="1.5"/></svg>`, title: "Projects", subtitle: "Our Work" },
+            { id: "contact", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8L12 13L21 8V19H3V8Z" fill="#ec4899" stroke="#f9a8d4" stroke-width="1.5"/><path d="M3 8L12 13L21 8" stroke="#f9a8d4" stroke-width="1.5"/></svg>`, title: "Contact", subtitle: "Get in Touch" },
+            { id: "donate", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21L3 9H21L12 21Z" fill="#eab308" stroke="#fef08c" stroke-width="1.5"/><circle cx="12" cy="8" r="4" fill="#fef08c" opacity="0.9"/></svg>`, title: "Donate", subtitle: "Support Us" },
+            { 
+                id: "boring", 
+                svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#64748b" stroke="#cbd5e1" stroke-width="1.5"/><path d="M14 2V8H20" stroke="#cbd5e1" stroke-width="1.5"/><path d="M9 13H15M9 17H12" stroke="#cbd5e1" stroke-width="1.5"/></svg>`, 
+                title: "The Boring Stuff", 
+                subtitle: "Legal & Info" 
+            }
         ];
 
         let currentIndex = 0;
+
+        function triggerHaptic(pattern = [12]) {
+            if (navigator.vibrate) navigator.vibrate(pattern);
+        }
 
         function createPhoneMenu(containerId) {
             const container = document.getElementById(containerId);
@@ -388,7 +345,7 @@
                 el.className = `nav-item block bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl p-6 flex items-center gap-5 group ${item.id === 'home' ? 'active' : ''}`;
                 el.setAttribute('data-section', item.id);
                 el.innerHTML = `
-                    <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-3xl transition-transform group-hover:rotate-12">${item.icon}</div>
+                    <div class="flex-shrink-0">${item.svg}</div>
                     <div>
                         <div class="font-semibold text-xl">${item.title}</div>
                         <div class="text-sm text-zinc-400">${item.subtitle}</div>
@@ -410,7 +367,14 @@
             });
             
             const target = document.getElementById(`section-${section}`);
-            if (target) setTimeout(() => target.classList.add('active'), 10);
+            if (target) {
+                setTimeout(() => target.classList.add('active'), 10);
+                // Smooth scroll to top of content pane when changing sections
+                document.getElementById('content-pane').scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
 
             document.querySelectorAll('#phone-menu-mobile, #phone-menu-desktop').forEach(menu => {
                 if (!menu) return;
@@ -422,45 +386,30 @@
             currentIndex = menuItems.findIndex(item => item.id === section);
         }
 
-        // Swipe Navigation
         function addSwipeNavigation(screenId) {
             const screen = document.getElementById(screenId);
             if (!screen) return;
-            
-            let touchStartX = 0;
-            let touchEndX = 0;
-
-            screen.addEventListener('touchstart', e => {
-                touchStartX = e.changedTouches[0].screenX;
-                triggerHaptic([8]);
-            });
-
+            let startX = 0;
+            screen.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX);
             screen.addEventListener('touchend', e => {
-                touchEndX = e.changedTouches[0].screenX;
-                const diff = touchStartX - touchEndX;
-
+                const diff = startX - e.changedTouches[0].screenX;
                 if (Math.abs(diff) > 80) {
                     triggerHaptic([20, 10]);
-                    if (diff > 0) currentIndex = (currentIndex + 1) % menuItems.length;
-                    else currentIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+                    currentIndex = (currentIndex + (diff > 0 ? 1 : -1) + menuItems.length) % menuItems.length;
                     switchSection(menuItems[currentIndex].id);
                 }
             });
         }
 
-        // Initialize
         window.onload = () => {
             initWebGL();
-            
             createPhoneMenu('phone-menu-mobile');
             createPhoneMenu('phone-menu-desktop');
             switchSection('home');
-            
             addSwipeNavigation('phone-screen-mobile');
             addSwipeNavigation('phone-screen-desktop');
         };
 
-        // Mouse for WebGL
         window.addEventListener('mousemove', (e) => {
             mouseX = (e.clientX / window.innerWidth) * 2 - 1;
             mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
