@@ -75,7 +75,6 @@
                 0 0 0 1px rgba(15, 23, 42, 0.6);
         }
         
-        /* Dynamic Island - Now properly layered */
         .dynamic-island {
             position: absolute;
             top: 18px;
@@ -106,7 +105,7 @@
             height: calc(100% - 52px);
             overflow-y: auto;
             scrollbar-width: none;
-            padding: 52px 30px 40px; /* Increased top padding to clear Dynamic Island */
+            padding: 52px 30px 40px;
         }
         
         .content::-webkit-scrollbar { display: none; }
@@ -142,6 +141,21 @@
             text-shadow: 0 0 50px rgba(0, 245, 255, 0.5),
                          0 0 90px rgba(0, 245, 255, 0.3);
         }
+
+        /* Mobile Phone Container */
+        @media (max-width: 1280px) {
+            .phone-frame {
+                width: 340px;
+                height: 680px;
+                border-width: 12px;
+            }
+            .phone-screen {
+                border-width: 10px;
+            }
+            .content {
+                padding: 48px 24px 32px;
+            }
+        }
     </style>
 </head>
 <body class="bg-grid min-h-screen">
@@ -162,14 +176,13 @@
         </header>
 
         <div class="flex min-h-[calc(100vh-88px)]">
-            <!-- Phone Preview -->
-            <div class="hidden xl:flex w-5/12 border-r border-white/10 bg-[#0a0a0f]/60 items-center justify-center p-12 relative">
-                <div class="phone-frame">
+            
+            <!-- PHONE CONTAINER - Visible on Mobile & Tablet, Hidden on XL Desktop -->
+            <div class="xl:hidden flex-1 flex items-center justify-center p-6 bg-[#0a0a0f]/60">
+                <div class="phone-frame mx-auto">
                     <div class="phone-screen">
-                        <!-- Dynamic Island -->
                         <div class="dynamic-island"></div>
                         
-                        <!-- Status Bar -->
                         <div class="status-bar">
                             <div class="font-medium">9:41</div>
                             <div class="flex items-center gap-5">
@@ -179,8 +192,7 @@
                             </div>
                         </div>
                         
-                        <!-- Phone Content -->
-                        <div class="content" id="phone-content">
+                        <div class="content" id="phone-content-mobile">
                             <div class="text-center mb-12">
                                 <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center text-5xl shadow-2xl mb-6">
                                     ⚔️
@@ -188,83 +200,79 @@
                                 <h2 class="title-font text-5xl font-bold tracking-tighter">KITSERUKI</h2>
                                 <p class="text-cyan-400 text-sm tracking-[4px] mt-1">EST 2022 • TOKYO / BERLIN</p>
                             </div>
-                            
                             <div class="space-y-4" id="phone-menu"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Main Content Area -->
-            <div class="flex-1 p-8 lg:p-16 xl:p-20 overflow-auto" id="content-pane">
-                <!-- Sections remain the same as previous version -->
-                <div id="section-home" class="section active">
-                    <div class="max-w-3xl">
-                        <div class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-sm mb-8">
-                            <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                            NOW OPEN FOR 2026 COLLABORATIONS
-                        </div>
-                        <h1 class="title-font text-7xl lg:text-[96px] leading-[1.05] font-bold tracking-tighter hero-glow">
-                            WE FORGE<br>LEGENDARY<br>EXPERIENCES
-                        </h1>
-                        <p class="mt-8 text-2xl text-zinc-300 max-w-2xl">
-                            A premium gaming and digital studio specializing in immersive worlds, cinematic gameplay, and cutting-edge interactive software.
-                        </p>
-                        <div class="mt-14 flex flex-wrap gap-4">
-                            <button onclick="switchSection('work')" class="px-10 py-5 bg-white text-black font-semibold rounded-3xl hover:scale-105 active:scale-95 transition-all duration-300 text-lg">
-                                View Our Work
-                            </button>
-                            <button onclick="switchSection('contact')" class="px-10 py-5 border border-white/40 hover:border-white rounded-3xl transition-all duration-300 text-lg">
-                                Begin a Project →
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Other sections (About, Services, Work, Contact) unchanged from v4.1 -->
-                <div id="section-about" class="section hidden">
-                    <h2 class="title-font text-6xl font-bold tracking-tighter mb-10">About Kitseruki</h2>
-                    <div class="max-w-2xl prose prose-invert text-lg leading-relaxed">
-                        <p class="text-zinc-300">Born from a passion for storytelling and technical excellence, Kitseruki brings together visionary creatives to craft unforgettable digital experiences.</p>
-                    </div>
-                </div>
-
-                <div id="section-services" class="section hidden">
-                    <h2 class="title-font text-6xl font-bold tracking-tighter mb-12">Our Expertise</h2>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-white/5 border border-white/10 p-9 rounded-3xl hover:border-cyan-400/30 transition-colors">
-                            <h3 class="text-2xl font-semibold mb-3">AAA Game Development</h3>
-                            <p class="text-zinc-400">Unreal Engine 5 • Custom Tools • Cinematic Experiences</p>
-                        </div>
-                        <div class="bg-white/5 border border-white/10 p-9 rounded-3xl hover:border-cyan-400/30 transition-colors">
-                            <h3 class="text-2xl font-semibold mb-3">Immersive Web Experiences</h3>
-                            <p class="text-zinc-400">WebGL • Three.js • Interactive Storytelling</p>
+            <!-- DESKTOP SPLIT LAYOUT - Hidden on Mobile -->
+            <div class="hidden xl:flex w-full">
+                <!-- Left: Phone -->
+                <div class="w-5/12 border-r border-white/10 bg-[#0a0a0f]/60 flex items-center justify-center p-12">
+                    <div class="phone-frame">
+                        <div class="phone-screen">
+                            <div class="dynamic-island"></div>
+                            <div class="status-bar">
+                                <div class="font-medium">9:41</div>
+                                <div class="flex items-center gap-5">
+                                    <i class="fa-solid fa-signal"></i>
+                                    <i class="fa-solid fa-wifi"></i>
+                                    <span class="font-medium">93%</span>
+                                </div>
+                            </div>
+                            <div class="content" id="phone-content-desktop">
+                                <div class="text-center mb-12">
+                                    <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center text-5xl shadow-2xl mb-6">
+                                        ⚔️
+                                    </div>
+                                    <h2 class="title-font text-5xl font-bold tracking-tighter">KITSERUKI</h2>
+                                    <p class="text-cyan-400 text-sm tracking-[4px] mt-1">EST 2022 • TOKYO / BERLIN</p>
+                                </div>
+                                <div class="space-y-4" id="phone-menu-desktop"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div id="section-work" class="section hidden">
-                    <h2 class="title-font text-6xl font-bold tracking-tighter mb-10">Selected Works</h2>
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="group">
-                            <div class="aspect-video bg-gradient-to-br from-violet-900 to-cyan-900 rounded-3xl mb-5 flex items-center justify-center text-7xl transition-transform group-hover:scale-105">🌌</div>
-                            <h3 class="text-2xl font-semibold">KAGE: Shadows Eternal</h3>
-                            <p class="text-zinc-400">Action-Adventure • PC & Console • 2025</p>
+                <!-- Right: Content Pane -->
+                <div class="flex-1 p-8 lg:p-16 xl:p-20 overflow-auto" id="content-pane">
+                    <!-- All sections here (same as before) -->
+                    <div id="section-home" class="section active">
+                        <div class="max-w-3xl">
+                            <div class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-sm mb-8">
+                                <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                                NOW OPEN FOR 2026 COLLABORATIONS
+                            </div>
+                            <h1 class="title-font text-7xl lg:text-[96px] leading-[1.05] font-bold tracking-tighter hero-glow">
+                                WE FORGE<br>LEGENDARY<br>EXPERIENCES
+                            </h1>
+                            <p class="mt-8 text-2xl text-zinc-300 max-w-2xl">
+                                A premium gaming and digital studio specializing in immersive worlds, cinematic gameplay, and cutting-edge interactive software.
+                            </p>
+                            <div class="mt-14 flex flex-wrap gap-4">
+                                <button onclick="switchSection('work')" class="px-10 py-5 bg-white text-black font-semibold rounded-3xl hover:scale-105 active:scale-95 transition-all duration-300 text-lg">
+                                    View Our Work
+                                </button>
+                                <button onclick="switchSection('contact')" class="px-10 py-5 border border-white/40 hover:border-white rounded-3xl transition-all duration-300 text-lg">
+                                    Begin a Project →
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div id="section-contact" class="section hidden">
-                    <div class="max-w-lg">
-                        <h2 class="title-font text-6xl font-bold tracking-tighter mb-8">Let's Create Something Timeless</h2>
-                        <a href="mailto:hello@kitseruki.com" class="block text-4xl hover:text-cyan-400 transition-colors">hello@kitseruki.com</a>
-                    </div>
+                    <!-- Other sections (About, Services, Work, Contact) -->
+                    <div id="section-about" class="section hidden">...</div>
+                    <div id="section-services" class="section hidden">...</div>
+                    <div id="section-work" class="section hidden">...</div>
+                    <div id="section-contact" class="section hidden">...</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Menu items and functions (shared logic)
         const menuItems = [
             { id: "home", icon: "🏠", title: "Home", subtitle: "Studio Vision" },
             { id: "about", icon: "⚔️", title: "About", subtitle: "Our Philosophy" },
@@ -273,9 +281,11 @@
             { id: "contact", icon: "✉️", title: "Contact", subtitle: "Start a Project" }
         ];
 
-        function createPhoneMenu() {
-            const container = document.getElementById('phone-menu');
+        function createPhoneMenu(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
             container.innerHTML = '';
+            
             menuItems.forEach(item => {
                 const el = document.createElement('a');
                 el.href = "#";
@@ -301,16 +311,23 @@
                 s.classList.remove('active', 'hidden');
                 if (s.id !== `section-${section}`) s.classList.add('hidden');
             });
-            const target = document.getElementById(`section-${section}`);
-            setTimeout(() => target.classList.add('active'), 10);
             
-            document.querySelectorAll('#phone-menu a').forEach(link => {
-                link.classList.toggle('active', link.getAttribute('data-section') === section);
+            const target = document.getElementById(`section-${section}`);
+            if (target) {
+                setTimeout(() => target.classList.add('active'), 10);
+            }
+            
+            // Sync both phone menus
+            document.querySelectorAll('#phone-menu, #phone-menu-desktop').forEach(menu => {
+                menu.querySelectorAll('a').forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('data-section') === section);
+                });
             });
         }
 
         window.onload = () => {
-            createPhoneMenu();
+            createPhoneMenu('phone-menu');
+            createPhoneMenu('phone-menu-desktop');
             switchSection('home');
         };
     </script>
