@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Kitseruki — Premium Gaming & Digital Studio crafting immersive worlds and next-generation interactive experiences.">
     <title>Kitseruki Studio</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/postprocessing/UnrealBloomPass.js"></script>
-    
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-        
-        :root { --neon: #00f5ff; }
-        
+
+        :root {
+            --neon: #00f5ff;
+            --neon-dark: #00b8c2;
+        }
+
         * { scroll-behavior: smooth; }
-        
+
         body {
             font-family: 'Inter', system-ui, sans-serif;
             background: #050507;
@@ -27,243 +27,328 @@
             overflow-x: hidden;
             position: relative;
         }
-        
+
         .title-font { font-family: 'Space Grotesk', sans-serif; }
 
         #webgl-background {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -1;
-            opacity: 0.85;
+            inset: 0;
+            z-index: -2;
+            opacity: 0.65;
         }
 
-        .phone-frame {
-            width: 392px; height: 790px;
-            background: linear-gradient(145deg, #1a1a2e, #0c0c1a);
-            border: 16px solid #111827;
-            border-radius: 70px;
-            box-shadow: 0 45px 90px -20px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(255,255,255,0.08), 0 0 70px -15px rgba(0,245,255,0.25);
-            position: relative; overflow: hidden;
-            transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
+        #background-overlay {
+            position: fixed;
+            inset: 0;
+            background: #050507;
+            opacity: 0.4;
+            z-index: -1;
+            pointer-events: none;
         }
-        .phone-frame:hover { transform: scale(1.015) rotate(0.5deg); }
+
+        /* Seamlessly blends the left desktop pane into the 3D canvas environment */
+        .blended-left-pane {
+            background: linear-gradient(to right, rgba(10, 10, 15, 0.75) 0%, rgba(10, 10, 15, 0.4) 70%, transparent 100%);
+        }
+
+        /* Phone mockup layout architecture */
+        .phone-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .phone-frame {
+            width: 360px;
+            height: 740px;
+            background: linear-gradient(145deg, #161624, #080811);
+            border: 14px solid #111827;
+            border-radius: 52px;
+            box-shadow: 
+                0 40px 80px -15px rgba(0,0,0,0.95),
+                inset 0 0 0 2px rgba(255,255,255,0.06);
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            transform-origin: center;
+            transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
         .phone-screen {
             width: 100%; height: 100%;
             background: #0a0a0f;
-            border-radius: 54px;
+            border-radius: 40px;
             overflow: hidden;
             position: relative;
-            border: 12px solid #1e2937;
-            box-shadow: inset 0 0 0 1px rgba(148,163,184,0.15), 0 0 0 1px rgba(15,23,42,0.6);
+            border: 3px solid #1e2937;
         }
 
         .dynamic-island {
-            position: absolute; top: 18px; left: 50%;
+            position: absolute;
+            top: 12px;
+            left: 50%;
             transform: translateX(-50%);
-            width: 130px; height: 34px;
+            width: 118px;
+            height: 32px;
             background: #111827;
-            border-radius: 40px;
+            border-radius: 9999px;
             z-index: 50;
             box-shadow: 0 4px 12px rgba(0,0,0,0.6);
         }
 
-        .icon-3d {
-            width: 54px; height: 54px;
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7));
-            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
-        }
-        .nav-item:hover .icon-3d {
-            transform: scale(1.18) rotate(12deg);
-        }
-
         .status-bar {
-            height: 52px; background: transparent;
+            height: 44px; background: transparent;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 34px; font-size: 13.5px; color: #e0e0ff;
+            padding: 0 28px; font-size: 13px; color: #e0e0ff;
             z-index: 40; position: relative;
         }
-        
+
         .content {
-            height: calc(100% - 52px);
+            height: calc(100% - 44px);
             overflow-y: auto;
             scrollbar-width: none;
-            padding: 52px 30px 40px;
+            padding: 20px 24px 40px;
             touch-action: pan-y;
             scroll-behavior: smooth;
         }
         .content::-webkit-scrollbar { display: none; }
 
-        .nav-item {
-            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+        .phone-brand-logo {
+            width: 82px; height: 82px;
+            font-size: 38px;
+            border-radius: 24px;
+            margin-bottom: 24px;
         }
-        .nav-item:active { transform: scale(0.96); }
-        .nav-item:hover {
-            transform: translateX(14px) scale(1.02);
-            background: rgba(0,245,255,0.12);
-            border-color: rgba(0,245,255,0.35);
+        .phone-brand-title {
+            font-size: 38px;
+            line-height: 1;
         }
-        .active {
-            background: rgba(0,245,255,0.18);
-            border-left: 5px solid var(--neon);
-            box-shadow: 0 10px 30px rgba(0,245,255,0.15);
+        .phone-brand-sub {
+            font-size: 11px;
+            letter-spacing: 3px;
+            margin-top: 6px;
+        }
+        .phone-brand-header {
+            margin-bottom: 32px;
         }
 
-        .section {
-            opacity: 0; transform: translateY(40px);
-            transition: all 0.7s cubic-bezier(0.25,0.1,0.25,1);
-            min-height: 70vh;
+        /* Nav configuration */
+        .nav-item {
+            padding: 16px 20px;
+            gap: 16px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        .nav-item:active { transform: scale(0.97); }
+        .nav-item:hover {
+            transform: translateX(8px);
+            background: rgba(0,245,255,0.09);
+            border-color: rgba(0,245,255,0.3);
+        }
+
+        .nav-item.active {
+            background: rgba(0,245,255,0.14);
+            border-left: 5px solid var(--neon);
+            border-color: rgba(0,245,255,0.2);
+            box-shadow: 0 10px 30px rgba(0,245,255,0.12);
+        }
+
+        .icon-3d {
+            width: 48px;
+            height: 48px;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .nav-item:hover .icon-3d {
+            transform: scale(1.18) rotate(15deg);
+        }
+
+        /* Display Content Layout Adjustments */
+        #content-pane {
+            overflow-y: auto;
+            scrollbar-width: none;
+            position: relative;
+        }
+        #content-pane::-webkit-scrollbar { display: none; }
+
+        .section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
         .section.active {
-            opacity: 1; transform: translateY(0);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 1;
+            transform: translateY(0);
+            min-height: 100%;
         }
 
         .hero-glow {
-            text-shadow: 0 0 50px rgba(0,245,255,0.5), 0 0 90px rgba(0,245,255,0.3);
-        }
-
-        @media (max-width: 1280px) {
-            .phone-frame { width: 340px; height: 680px; border-width: 12px; }
-            .phone-screen { border-width: 10px; }
-            .content { padding: 48px 24px 32px; }
+            text-shadow: 
+                0 0 40px rgb(0 245 255 / 0.5),
+                0 0 80px rgb(0 245 255 / 0.25);
         }
     </style>
 </head>
 <body>
     <canvas id="webgl-background"></canvas>
+    <div id="background-overlay"></div>
 
-    <div class="max-w-screen-2xl mx-auto relative z-10">
-        <header class="border-b border-white/10 py-6 px-8 flex items-center justify-between sticky top-0 z-50 bg-[#050507]/80 backdrop-blur-2xl">
+    <div class="max-w-screen-2xl mx-auto relative z-10 min-h-screen">
+        <header class="border-b border-white/10 py-6 px-8 flex items-center justify-between sticky top-0 z-50 bg-[#050507]/90 backdrop-blur-2xl">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-gradient-to-br from-cyan-400 to-violet-500 rounded-2xl flex items-center justify-center text-lg font-bold shadow-inner">K</div>
+                <div class="w-9 h-9 bg-gradient-to-br from-cyan-400 to-violet-500 rounded-2xl flex items-center justify-center text-xl font-bold shadow-inner">K</div>
                 <h1 class="title-font text-3xl font-semibold tracking-tighter">KITSERUKI</h1>
             </div>
+            <div class="text-xs text-zinc-500 font-mono tracking-widest">EST 2022 • TOKYO / BERLIN</div>
         </header>
 
-        <div class="flex min-h-[calc(100vh-88px)]">
-            <!-- Mobile Phone -->
-            <div class="xl:hidden flex-1 flex items-center justify-center p-6 bg-[#0a0a0f]/60">
-                <div class="phone-frame mx-auto" id="mobile-phone">
-                    <div class="phone-screen" id="phone-screen-mobile">
-                        <div class="dynamic-island"></div>
-                        <div class="status-bar">
-                            <div class="font-medium">9:41</div>
-                            <div class="flex items-center gap-5">
-                                <i class="fa-solid fa-signal"></i>
-                                <i class="fa-solid fa-wifi"></i>
-                                <span class="font-medium">93%</span>
+        <div class="flex h-[calc(100vh-88px)] overflow-hidden">
+            <div class="xl:hidden flex-1 flex items-center justify-center p-6 bg-[#0a0a0f]/60 overflow-hidden">
+                <div class="phone-container" id="mobile-phone-container">
+                    <div class="phone-frame" id="mobile-phone">
+                        <div class="phone-screen" id="phone-screen-mobile">
+                            <div class="dynamic-island"></div>
+                            <div class="status-bar">
+                                <div>9:41</div>
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-signal"></i>
+                                    <i class="fa-solid fa-wifi"></i>
+                                    <span>93%</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="content" id="phone-content-mobile">
-                            <div class="text-center mb-12">
-                                <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center text-5xl shadow-2xl mb-6">⚔️</div>
-                                <h2 class="title-font text-5xl font-bold tracking-tighter">KITSERUKI</h2>
-                                <p class="text-cyan-400 text-sm tracking-[4px] mt-1">EST 2022 • TOKYO / BERLIN</p>
+                            <div class="content" id="phone-content-mobile">
+                                <div class="text-center phone-brand-header">
+                                    <div class="mx-auto bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-2xl phone-brand-logo">⚔️</div>
+                                    <h2 class="title-font font-bold tracking-tighter phone-brand-title">KITSERUKI</h2>
+                                    <p class="text-cyan-400 tracking-[4px] phone-brand-sub">EST 2022 • TOKYO / BERLIN</p>
+                                </div>
+                                <div class="space-y-0" id="phone-menu-mobile"></div>
                             </div>
-                            <div class="space-y-4" id="phone-menu-mobile"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Desktop Split -->
-            <div class="hidden xl:flex w-full">
-                <!-- Phone -->
-                <div class="w-5/12 border-r border-white/10 bg-[#0a0a0f]/60 flex items-center justify-center p-12">
+            <div class="hidden xl:flex w-5/12 border-r border-white/10 blended-left-pane items-center justify-center p-8 overflow-hidden">
+                <div class="phone-container" id="desktop-phone-container">
                     <div class="phone-frame" id="desktop-phone">
                         <div class="phone-screen" id="phone-screen-desktop">
                             <div class="dynamic-island"></div>
                             <div class="status-bar">
-                                <div class="font-medium">9:41</div>
-                                <div class="flex items-center gap-5">
+                                <div>9:41</div>
+                                <div class="flex items-center gap-3">
                                     <i class="fa-solid fa-signal"></i>
                                     <i class="fa-solid fa-wifi"></i>
-                                    <span class="font-medium">93%</span>
+                                    <span>93%</span>
                                 </div>
                             </div>
                             <div class="content" id="phone-content-desktop">
-                                <div class="text-center mb-12">
-                                    <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center text-5xl shadow-2xl mb-6">⚔️</div>
-                                    <h2 class="title-font text-5xl font-bold tracking-tighter">KITSERUKI</h2>
-                                    <p class="text-cyan-400 text-sm tracking-[4px] mt-1">EST 2022 • TOKYO / BERLIN</p>
+                                <div class="text-center phone-brand-header">
+                                    <div class="mx-auto bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-2xl phone-brand-logo">⚔️</div>
+                                    <h2 class="title-font font-bold tracking-tighter phone-brand-title">KITSERUKI</h2>
+                                    <p class="text-cyan-400 tracking-[4px] phone-brand-sub">EST 2022 • TOKYO / BERLIN</p>
                                 </div>
-                                <div class="space-y-4" id="phone-menu-desktop"></div>
+                                <div class="space-y-0" id="phone-menu-desktop"></div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Content Pane -->
-                <div class="flex-1 p-8 lg:p-16 xl:p-20 overflow-auto" id="content-pane">
-                    <div id="section-home" class="section active">
-                        <div class="max-w-3xl">
-                            <div class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-sm mb-8">
-                                <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                                NOW OPEN FOR 2026 COLLABORATIONS
-                            </div>
-                            <h1 class="title-font text-7xl lg:text-[96px] leading-[1.05] font-bold tracking-tighter hero-glow">
-                                WE FORGE<br>LEGENDARY<br>EXPERIENCES
-                            </h1>
-                            <p class="mt-8 text-2xl text-zinc-300 max-w-2xl">
-                                A premium gaming and digital studio specializing in immersive worlds, cinematic gameplay, and cutting-edge interactive software.
-                            </p>
+            <div class="flex-1 p-8 lg:p-16 xl:p-24" id="content-pane">
+                
+                <div id="section-home" class="section">
+                    <div class="max-w-3xl py-4">
+                        <div class="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-full text-sm mb-10">
+                            <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                            NOW OPEN FOR 2026 COLLABORATIONS
                         </div>
+                        <h1 class="title-font text-7xl lg:text-[88px] leading-none font-bold tracking-tighter hero-glow">
+                            WE FORGE<br>LEGENDARY<br>EXPERIENCES
+                        </h1>
+                        <p class="mt-10 text-2xl text-zinc-300 max-w-2xl">
+                            A premium gaming and digital studio specializing in immersive worlds, cinematic gameplay, and cutting-edge interactive software.
+                        </p>
                     </div>
+                </div>
 
-                    <div id="section-projects" class="section hidden">
+                <div id="section-projects" class="section">
+                    <div class="max-w-3xl py-4">
                         <h2 class="title-font text-6xl font-bold tracking-tighter mb-10">Our Projects</h2>
-                        <p class="text-zinc-400">Content coming soon...</p>
+                        <p class="text-zinc-400 text-xl">Immersive standalone experiences currently in production. Details dropping soon.</p>
                     </div>
+                </div>
 
-                    <div id="section-contact" class="section hidden">
-                        <div class="max-w-lg">
-                            <h2 class="title-font text-6xl font-bold tracking-tighter mb-8">Let's Create Together</h2>
-                            <a href="mailto:hello@kitseruki.com" class="block text-4xl hover:text-cyan-400 transition-colors">hello@kitseruki.com</a>
-                        </div>
+                <div id="section-contact" class="section">
+                    <div class="max-w-lg py-4">
+                        <h2 class="title-font text-6xl font-bold tracking-tighter mb-8">Let's Create</h2>
+                        <a href="mailto:hello@kitseruki.com" class="block text-4xl text-cyan-400 hover:text-white transition-colors title-font font-medium tracking-tight">hello@kitseruki.com</a>
                     </div>
+                </div>
 
-                    <div id="section-donate" class="section hidden">
-                        <div class="max-w-lg">
-                            <h2 class="title-font text-6xl font-bold tracking-tighter mb-8">Support Our Vision</h2>
-                            <p class="text-zinc-300 text-lg">Help us continue crafting legendary digital experiences.</p>
-                            <button class="mt-8 px-10 py-5 bg-gradient-to-r from-cyan-400 to-violet-500 text-black font-semibold rounded-3xl text-lg">
-                                Donate Now
-                            </button>
-                        </div>
+                <div id="section-donate" class="section">
+                    <div class="max-w-lg py-4">
+                        <h2 class="title-font text-6xl font-bold tracking-tighter mb-8">Support Our Vision</h2>
+                        <p class="text-zinc-300 text-lg mb-8">Help us continue crafting high-fidelity interactive digital pipelines.</p>
+                        <button class="px-10 py-4 bg-gradient-to-r from-cyan-400 to-violet-500 text-black font-semibold rounded-2xl text-md tracking-wide transition-transform active:scale-95">
+                            Donate Now
+                        </button>
                     </div>
+                </div>
 
-                    <div id="section-boring" class="section hidden">
-                        <div class="max-w-3xl">
-                            <h2 class="title-font text-6xl font-bold tracking-tighter mb-10">The Boring Stuff</h2>
-                            <div class="prose prose-invert max-w-none text-lg leading-relaxed">
-                                <h3 class="text-2xl font-semibold mt-8 mb-4">Legal</h3>
-                                <p class="text-zinc-400">Privacy Policy • Terms of Service • Cookie Policy</p>
-                                <h3 class="text-2xl font-semibold mt-8 mb-4">Company Information</h3>
-                                <p class="text-zinc-400">Kitseruki Studio • Hybrid (Tokyo / Berlin)</p>
+                <div id="section-boring" class="section">
+                    <div class="max-w-3xl py-4">
+                        <h2 class="title-font text-5xl font-bold tracking-tighter mb-8">The Boring Stuff</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-md leading-relaxed">
+                            <div>
+                                <h3 class="text-lg font-semibold text-cyan-400 mb-2">Legal</h3>
+                                <p class="text-zinc-400">Privacy Policy &bull; Terms of Service &bull; Cookies</p>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-cyan-400 mb-2">Company</h3>
+                                <p class="text-zinc-400">Kitseruki Studio &bull; Tokyo / Berlin Studio Hubs</p>
                             </div>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
 
     <script>
-        let scene, camera, renderer, composer, particles;
+        // === THREE.JS BACKGROUND ===
+        let scene, camera, renderer, particles;
         let mouseX = 0, mouseY = 0;
+        let targetRotY = 0, targetRotX = 0;
 
-        function createCircularTexture() {
+        function createParticleTexture() {
             const canvas = document.createElement('canvas');
-            canvas.width = 128; canvas.height = 128;
+            canvas.width = 64; canvas.height = 64;
             const ctx = canvas.getContext('2d');
-            const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 64);
+            const grad = ctx.createRadialGradient(32, 32, 4, 32, 32, 32);
             grad.addColorStop(0, 'rgba(255,255,255,1)');
-            grad.addColorStop(0.5, 'rgba(120,240,255,0.95)');
-            grad.addColorStop(1, 'rgba(0,160,255,0)');
+            grad.addColorStop(0.6, 'rgba(100,240,255,0.9)');
+            grad.addColorStop(1, 'rgba(0,180,255,0)');
             ctx.fillStyle = grad;
             ctx.beginPath();
-            ctx.arc(64, 64, 58, 0, Math.PI * 2);
+            ctx.arc(32, 32, 30, 0, Math.PI * 2);
             ctx.fill();
             return new THREE.CanvasTexture(canvas);
         }
@@ -271,68 +356,83 @@
         function initWebGL() {
             const canvas = document.getElementById('webgl-background');
             renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.2));
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
-            camera.position.z = 45;
+            camera.position.z = 38;
 
-            scene.fog = new THREE.Fog(0x050507, 25, 95);
+            const count = 1600;
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
 
-            const particleCount = 1100;
-            const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-            const colors = new Float32Array(particleCount * 3);
+            for (let i = 0; i < count * 3; i += 3) {
+                positions[i]     = (Math.random() - 0.5) * 120;
+                positions[i + 1] = (Math.random() - 0.5) * 110;
+                positions[i + 2] = (Math.random() - 0.5) * 90;
 
-            for (let i = 0; i < particleCount * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 120;
-                positions[i + 1] = (Math.random() - 0.5) * 120;
-                positions[i + 2] = (Math.random() - 0.5) * 80;
-                const color = new THREE.Color().setHSL(0.5 + Math.random() * 0.12, 0.85, 0.75);
-                colors[i] = color.r; colors[i+1] = color.g; colors[i+2] = color.b;
+                const hue = 0.48 + Math.random() * 0.18;
+                const color = new THREE.Color().setHSL(hue, 0.9, 0.75);
+                colors[i] = color.r;
+                colors[i+1] = color.g;
+                colors[i+2] = color.b;
             }
 
+            const geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
             const material = new THREE.PointsMaterial({
-                size: 1.4,
+                size: 1.1,
                 vertexColors: true,
                 transparent: true,
-                opacity: 0.9,
+                opacity: 0.75,
                 blending: THREE.AdditiveBlending,
                 depthTest: false,
-                map: createCircularTexture()
+                map: createParticleTexture(),
+                alphaTest: 0.15
             });
 
             particles = new THREE.Points(geometry, material);
             scene.add(particles);
 
-            // Post-processing
-            composer = new THREE.EffectComposer(renderer);
-            composer.addPass(new THREE.RenderPass(scene, camera));
-
-            const bloomPass = new THREE.UnrealBloomPass(
-                new THREE.Vector2(window.innerWidth, window.innerHeight),
-                1.4,   // strength
-                0.5,   // radius
-                0.8    // threshold
-            );
-            composer.addPass(bloomPass);
-
             function animate() {
                 requestAnimationFrame(animate);
-                particles.rotation.y += 0.00008;
-                particles.rotation.x += 0.00004;
-                particles.rotation.y += mouseX * 0.0001;
-                particles.rotation.x += mouseY * 0.00008;
-                composer.render();
+
+                targetRotY = mouseX * 0.28;
+                targetRotX = mouseY * 0.22;
+
+                particles.rotation.y = particles.rotation.y * 0.93 + targetRotY * 0.07;
+                particles.rotation.x = particles.rotation.x * 0.93 + targetRotX * 0.07;
+
+                renderer.render(scene, camera);
             }
             animate();
         }
 
-        // Menu Items
+        // === PHONE SCALING ===
+        function scalePhoneMockups() {
+            const containers = [
+                { container: 'desktop-phone-container', phone: 'desktop-phone' },
+                { container: 'mobile-phone-container', phone: 'mobile-phone' }
+            ];
+
+            containers.forEach(({ container, phone }) => {
+                const parent = document.getElementById(container);
+                const child = document.getElementById(phone);
+                if (!parent || !child) return;
+
+                const rect = parent.getBoundingClientRect();
+                const scaleX = rect.width / 360;
+                const scaleY = rect.height / 740;
+                let scale = Math.min(scaleX, scaleY, 1.05);
+
+                child.style.transform = `scale(${scale})`;
+            });
+        }
+
+        // === MENU & NAV ===
         const menuItems = [
             { id: "home", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 9L12 3L21 9V21H3V9Z" fill="#0ea5e9" stroke="#67e8f9" stroke-width="1.5"/><path d="M9 21V13H15V21" stroke="#67e8f9" stroke-width="1.5"/></svg>`, title: "Home", subtitle: "Studio Vision" },
             { id: "projects", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6H20V18H4V6Z" fill="#8b5cf6" stroke="#c4b5fd" stroke-width="1.5"/><path d="M8 10H16M8 14H12" stroke="#c4b5fd" stroke-width="1.5"/></svg>`, title: "Projects", subtitle: "Our Work" },
@@ -340,74 +440,83 @@
             { id: "donate", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21L3 9H21L12 21Z" fill="#eab308" stroke="#fef08c" stroke-width="1.5"/><circle cx="12" cy="8" r="4" fill="#fef08c" opacity="0.9"/></svg>`, title: "Donate", subtitle: "Support Us" },
             { id: "boring", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#64748b" stroke="#cbd5e1" stroke-width="1.5"/><path d="M14 2V8H20" stroke="#cbd5e1" stroke-width="1.5"/><path d="M9 13H15M9 17H12" stroke="#cbd5e1" stroke-width="1.5"/></svg>`, title: "The Boring Stuff", subtitle: "Legal & Info" }
         ];
-
+        
         let currentIndex = 0;
-
-        function triggerHaptic(pattern = [12]) {
-            if (navigator.vibrate) navigator.vibrate(pattern);
-        }
 
         function createPhoneMenu(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = '';
-            
+
             menuItems.forEach(item => {
                 const el = document.createElement('a');
                 el.href = "#";
-                el.className = `nav-item block bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl p-6 flex items-center gap-5 group ${item.id === 'home' ? 'active' : ''}`;
-                el.setAttribute('data-section', item.id);
+                el.className = `nav-item flex items-center group bg-white/5 ${item.id === 'home' ? 'active' : ''}`;
+                el.dataset.section = item.id;
                 el.innerHTML = `
                     <div class="flex-shrink-0">${item.svg}</div>
                     <div>
-                        <div class="font-semibold text-xl">${item.title}</div>
-                        <div class="text-sm text-zinc-400">${item.subtitle}</div>
+                        <div class="font-semibold nav-item-title text-white">${item.title}</div>
+                        <div class="text-zinc-400 text-xs">${item.subtitle}</div>
                     </div>
                 `;
-                el.addEventListener('click', (e) => {
+                el.addEventListener('click', e => {
                     e.preventDefault();
-                    triggerHaptic([12, 8]);
+                    if (navigator.vibrate) navigator.vibrate(12);
                     switchSection(item.id);
                 });
                 container.appendChild(el);
             });
         }
 
-        function switchSection(section) {
-            document.querySelectorAll('.section').forEach(s => {
-                s.classList.remove('active', 'hidden');
-                if (s.id !== `section-${section}`) s.classList.add('hidden');
-            });
-            
-            const target = document.getElementById(`section-${section}`);
+        function switchSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById(`section-${sectionId}`);
             if (target) {
-                setTimeout(() => target.classList.add('active'), 10);
-                document.getElementById('content-pane').scrollTo({ top: 0, behavior: 'smooth' });
+                target.classList.add('active');
+                document.getElementById('content-pane').scrollTo({ top: 0, behavior: 'instant' });
             }
 
             document.querySelectorAll('#phone-menu-mobile, #phone-menu-desktop').forEach(menu => {
                 if (!menu) return;
                 menu.querySelectorAll('a').forEach(link => {
-                    link.classList.toggle('active', link.getAttribute('data-section') === section);
+                    link.classList.toggle('active', link.dataset.section === sectionId);
                 });
             });
-
-            currentIndex = menuItems.findIndex(item => item.id === section);
+            currentIndex = menuItems.findIndex(item => item.id === sectionId);
         }
 
         function addSwipeNavigation(screenId) {
             const screen = document.getElementById(screenId);
             if (!screen) return;
+
             let startX = 0;
-            screen.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX);
+            screen.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX, { passive: true });
             screen.addEventListener('touchend', e => {
                 const diff = startX - e.changedTouches[0].screenX;
-                if (Math.abs(diff) > 80) {
-                    triggerHaptic([20, 10]);
-                    currentIndex = (currentIndex + (diff > 0 ? 1 : -1) + menuItems.length) % menuItems.length;
-                    switchSection(menuItems[currentIndex].id);
+                if (Math.abs(diff) < 80) return;
+
+                if (navigator.vibrate) navigator.vibrate([20, 10]);
+                if (diff > 0) {
+                    currentIndex = (currentIndex + 1) % menuItems.length;
+                } else {
+                    currentIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
                 }
+                switchSection(menuItems[currentIndex].id);
             });
+        }
+
+        let resizeTimeout;
+        function handleResize() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (camera && renderer) {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+                scalePhoneMockups();
+            }, 80);
         }
 
         window.onload = () => {
@@ -417,21 +526,16 @@
             switchSection('home');
             addSwipeNavigation('phone-screen-mobile');
             addSwipeNavigation('phone-screen-desktop');
+
+            scalePhoneMockups();
+
+            window.addEventListener('mousemove', e => {
+                mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            window.addEventListener('resize', handleResize);
         };
-
-        window.addEventListener('mousemove', (e) => {
-            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-        });
-
-        window.addEventListener('resize', () => {
-            if (camera && renderer && composer) {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                composer.setSize(window.innerWidth, window.innerHeight);
-            }
-        });
     </script>
 </body>
 </html>
