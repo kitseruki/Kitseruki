@@ -2,540 +2,728 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Kitseruki — Premium Gaming & Digital Studio crafting immersive worlds and next-generation interactive experiences.">
-    <title>Kitseruki Studio</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-
+    <title>KITSERUKI | D-VSN</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
-        :root {
-            --neon: #00f5ff;
-            --neon-dark: #00b8c2;
+        body, html { 
+            margin: 0; padding: 0; background: #010101; color: #ffffff; 
+            font-family: 'Inter', sans-serif; overflow: hidden; cursor: none; 
+            user-select: none;
         }
 
-        * { scroll-behavior: smooth; }
+        .noise {
+            position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+            opacity: 0.04; mix-blend-mode: overlay;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+        
+        #custom-cursor {
+            position: fixed; top: 0; left: 0; width: 96px; height: 96px;
+            pointer-events: none; z-index: 9999; will-change: transform;
+        }
+        
+        #canvas { position: fixed; inset: 0; z-index: 0; }
+        
+        /* Base UI System */
+        .ui { 
+            position: absolute; inset: 0; display: grid; grid-template-columns: 320px 1fr 320px; 
+            padding: 4rem; pointer-events: none; z-index: 1; perspective: 1200px; 
+            transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        
+        /* UI Transition States */
+        .ui.transition-warp { transform: scale(1.8) translateZ(300px); opacity: 0; filter: blur(10px); }
+        .ui.transition-drop { transform: translateY(120vh) rotateX(-60deg) scale(0.8); opacity: 0; }
+        .ui.transition-lift { transform: translateY(-120vh) rotateX(30deg) scale(0.8); opacity: 0; }
 
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background: #050507;
-            color: white;
-            overflow-x: hidden;
-            position: relative;
+        .panel { 
+            pointer-events: auto; background: rgba(5, 5, 5, 0.5); 
+            border: 1px solid rgba(255, 255, 255, 0.03); padding: 3rem; 
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            display: flex; flex-direction: column; transform-style: preserve-3d; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.02);
+            will-change: transform;
+        }
+        
+        h1 { 
+            font-size: 1.1rem; letter-spacing: 0.3rem; font-weight: 600; margin: 0; 
+            text-transform: uppercase; text-shadow: 0 0 20px rgba(255,255,255,0.3);
+            white-space: nowrap; /* Forces header to stay on a single line */
         }
 
-        .title-font { font-family: 'Space Grotesk', sans-serif; }
-
-        #webgl-background {
-            position: fixed;
-            inset: 0;
-            z-index: -2;
-            opacity: 0.65;
+        .nav-container { margin-top: 4rem; display: flex; flex-direction: column; gap: 1rem; }
+        
+        .nav-item { 
+            padding: 1.2rem; border: 1px solid rgba(255,255,255,0.05);
+            cursor: none; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            transform-style: preserve-3d; font-size: 0.85rem; letter-spacing: 0.15rem;
+            color: rgba(255,255,255,0.6); position: relative; overflow: hidden;
+            background: rgba(255,255,255,0.01);
+            text-transform: uppercase;
         }
 
-        #background-overlay {
-            position: fixed;
-            inset: 0;
-            background: #050507;
-            opacity: 0.4;
-            z-index: -1;
+        .nav-item::after { content: ''; position: absolute; left: 0; bottom: 0; height: 1px; width: 0%; background: #fff; transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .nav-item:hover { transform: translateZ(30px); border-color: rgba(255,255,255,0.2); color: #ffffff; background: rgba(255,255,255,0.03); text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .nav-item:hover::after { width: 100%; }
+
+        .status { font-size: 0.75rem; letter-spacing: 0.2rem; font-weight: 300; display: flex; align-items: center; gap: 0.5rem; color: rgba(255,255,255,0.5); }
+        .status::before { content: ''; width: 6px; height: 6px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 10px #00ff88; animation: pulse 2s infinite; }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* Dynamic Content Presentation Layers */
+        #content-layer {
+            position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; pointer-events: none; opacity: 0;
+            transition: opacity 1s ease;
+        }
+        #content-layer.visible { opacity: 1; pointer-events: auto; }
+
+        .content-title {
+            font-size: 2rem; letter-spacing: 0.4rem; font-weight: 300; margin-bottom: 2rem;
+            text-shadow: 0 0 30px rgba(255,255,255,0.8); text-align: center;
+        }
+
+        .return-btn {
+            padding: 1rem 3rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.3);
+            color: white; font-family: 'Inter', sans-serif; letter-spacing: 0.2rem; cursor: none;
+            transition: all 0.3s ease; text-transform: uppercase; font-size: 0.8rem;
+            backdrop-filter: blur(10px); margin-top: 2rem;
+        }
+        .return-btn:hover { background: white; color: black; box-shadow: 0 0 30px rgba(255,255,255,0.8); }
+
+        /* Archive Deck System */
+        .archive-deck {
+            display: flex; gap: 1rem; width: 85vw; height: 60vh;
+            max-width: 1400px; perspective: 1200px;
+        }
+
+        .archive-card {
+            flex: 1; background: rgba(0, 5, 10, 0.4); border: 1px solid rgba(0, 255, 255, 0.15);
+            transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            position: relative; overflow: hidden; cursor: none;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: inset 0 0 0 1px rgba(0,255,255,0.05);
+        }
+
+        .archive-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(0,255,255,0.05) 0%, transparent 100%);
+            opacity: 0; transition: opacity 0.5s ease; pointer-events: none;
+        }
+
+        .archive-card:hover, .archive-card:active {
+            flex: 3; background: rgba(0, 15, 25, 0.6); border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,255,255,0.1);
+        }
+
+        .archive-card:hover::before { opacity: 1; }
+
+        .card-title {
+            font-size: 1.2rem; letter-spacing: 0.3rem; font-weight: 300; color: rgba(0, 255, 255, 0.5);
+            transition: all 0.5s ease; white-space: nowrap; transform: rotate(-90deg); position: absolute;
+        }
+
+        .archive-card:hover .card-title {
+            transform: rotate(0deg) translateY(-40%); color: #00ffff;
+            text-shadow: 0 0 15px rgba(0,255,255,0.5); top: 3rem; position: absolute;
+        }
+
+        .card-content {
+            opacity: 0; transform: translateY(20px); transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            width: 80%; height: 60%; margin-top: 4rem; display: flex; flex-direction: column;
+            border-top: 1px solid rgba(0,255,255,0.2); padding-top: 2rem; color: rgba(255,255,255,0.8);
+            font-size: 0.9rem; letter-spacing: 0.1rem; line-height: 1.6;
             pointer-events: none;
         }
 
-        /* Seamlessly blends the left desktop pane into the 3D canvas environment */
-        .blended-left-pane {
-            background: linear-gradient(to right, rgba(10, 10, 15, 0.75) 0%, rgba(10, 10, 15, 0.4) 70%, transparent 100%);
+        .archive-card:hover .card-content { opacity: 1; transform: translateY(0); transition-delay: 0.2s; }
+
+        .placeholder-img {
+            flex: 1; background: repeating-linear-gradient(45deg, rgba(0,255,255,0.05), rgba(0,255,255,0.05) 10px, transparent 10px, transparent 20px);
+            border: 1px dashed rgba(0,255,255,0.3); margin-top: 1.5rem;
+            display: flex; align-items: center; justify-content: center; color: rgba(0,255,255,0.3);
+            font-size: 0.7rem; letter-spacing: 0.2rem;
         }
 
-        /* Phone mockup layout architecture */
-        .phone-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .phone-frame {
-            width: 360px;
-            height: 740px;
-            background: linear-gradient(145deg, #161624, #080811);
-            border: 14px solid #111827;
-            border-radius: 52px;
-            box-shadow: 
-                0 40px 80px -15px rgba(0,0,0,0.95),
-                inset 0 0 0 2px rgba(255,255,255,0.06);
-            position: relative;
-            overflow: hidden;
-            flex-shrink: 0;
-            transform-origin: center;
-            transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Compliance Matrix System */
+        .compliance-grid {
+            display: grid; grid-template-columns: 1fr; gap: 1.5rem; width: 60vw; max-width: 800px;
         }
 
-        .phone-screen {
-            width: 100%; height: 100%;
-            background: #0a0a0f;
-            border-radius: 40px;
-            overflow: hidden;
-            position: relative;
-            border: 3px solid #1e2937;
+        .compliance-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.5rem 2rem; background: rgba(0, 255, 136, 0.05); 
+            border-left: 4px solid #00ff88; border-right: 1px solid rgba(0, 255, 136, 0.1); 
+            border-top: 1px solid rgba(0, 255, 136, 0.1); border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+            backdrop-filter: blur(10px); cursor: none; transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative; overflow: hidden;
         }
 
-        .dynamic-island {
-            position: absolute;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 118px;
-            height: 32px;
-            background: #111827;
-            border-radius: 9999px;
-            z-index: 50;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        .compliance-row::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0,255,136,0.2), transparent);
+            transition: left 0.5s ease;
         }
 
-        .status-bar {
-            height: 44px; background: transparent;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 28px; font-size: 13px; color: #e0e0ff;
-            z-index: 40; position: relative;
+        .compliance-row:hover {
+            background: rgba(0, 255, 136, 0.15); transform: translateX(20px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.15); border-right-color: rgba(0, 255, 136, 0.5);
         }
 
-        .content {
-            height: calc(100% - 44px);
-            overflow-y: auto;
-            scrollbar-width: none;
-            padding: 20px 24px 40px;
-            touch-action: pan-y;
-            scroll-behavior: smooth;
-        }
-        .content::-webkit-scrollbar { display: none; }
+        .compliance-row:hover::before { left: 200%; }
 
-        .phone-brand-logo {
-            width: 82px; height: 82px;
-            font-size: 38px;
-            border-radius: 24px;
-            margin-bottom: 24px;
-        }
-        .phone-brand-title {
-            font-size: 38px;
-            line-height: 1;
-        }
-        .phone-brand-sub {
-            font-size: 11px;
-            letter-spacing: 3px;
-            margin-top: 6px;
-        }
-        .phone-brand-header {
-            margin-bottom: 32px;
-        }
+        .compliance-row-title { font-weight: 600; letter-spacing: 0.2rem; color: #00ff88; }
+        .compliance-row-status { font-size: 0.8rem; letter-spacing: 0.1rem; color: rgba(255,255,255,0.5); font-family: monospace; }
 
-        /* Nav configuration */
-        .nav-item {
-            padding: 16px 20px;
-            gap: 16px;
-            border-radius: 20px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(255,255,255,0.06);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Glitch Animation System */
+        @keyframes glitch-anim {
+            0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 2px); }
+            20% { clip-path: inset(40% 0 10% 0); transform: translate(2px, -2px); }
+            40% { clip-path: inset(80% 0 5% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(10% 0 60% 0); transform: translate(2px, -2px); }
+            80% { clip-path: inset(30% 0 20% 0); transform: translate(-2px, 2px); }
+            100% { clip-path: inset(50% 0 30% 0); transform: translate(2px, -2px); }
         }
-
-        .nav-item:active { transform: scale(0.97); }
-        .nav-item:hover {
-            transform: translateX(8px);
-            background: rgba(0,245,255,0.09);
-            border-color: rgba(0,245,255,0.3);
-        }
-
-        .nav-item.active {
-            background: rgba(0,245,255,0.14);
-            border-left: 5px solid var(--neon);
-            border-color: rgba(0,245,255,0.2);
-            box-shadow: 0 10px 30px rgba(0,245,255,0.12);
-        }
-
-        .icon-3d {
-            width: 48px;
-            height: 48px;
-            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .nav-item:hover .icon-3d {
-            transform: scale(1.18) rotate(15deg);
-        }
-
-        /* Display Content Layout Adjustments */
-        #content-pane {
-            overflow-y: auto;
-            scrollbar-width: none;
-            position: relative;
-        }
-        #content-pane::-webkit-scrollbar { display: none; }
-
-        .section {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            display: none;
-            width: 100%;
-            position: relative;
-            z-index: 10;
-        }
-
-        .section.active {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            opacity: 1;
-            transform: translateY(0);
-            min-height: 100%;
-        }
-
-        .hero-glow {
-            text-shadow: 
-                0 0 40px rgb(0 245 255 / 0.5),
-                0 0 80px rgb(0 245 255 / 0.25);
-        }
+        .glitch-text { position: relative; color: #ff0000; text-shadow: 0 0 20px #ff0000; font-weight: 600; }
+        .glitch-text::before, .glitch-text::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; }
+        .glitch-text::before { left: 3px; text-shadow: -2px 0 #00ffff; animation: glitch-anim 0.2s infinite linear alternate-reverse; }
+        .glitch-text::after { left: -3px; text-shadow: -2px 0 #00ff00; animation: glitch-anim 0.3s infinite linear alternate-reverse; }
     </style>
 </head>
 <body>
-    <canvas id="webgl-background"></canvas>
-    <div id="background-overlay"></div>
 
-    <div class="max-w-screen-2xl mx-auto relative z-10 min-h-screen">
-        <header class="border-b border-white/10 py-6 px-8 flex items-center justify-between sticky top-0 z-50 bg-[#050507]/90 backdrop-blur-2xl">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-gradient-to-br from-cyan-400 to-violet-500 rounded-2xl flex items-center justify-center text-xl font-bold shadow-inner">K</div>
-                <h1 class="title-font text-3xl font-semibold tracking-tighter">KITSERUKI</h1>
-            </div>
-            <div class="text-xs text-zinc-500 font-mono tracking-widest">EST 2022 • TOKYO / BERLIN</div>
-        </header>
+<div class="noise"></div>
+<canvas id="custom-cursor"></canvas>
+<canvas id="canvas"></canvas>
 
-        <div class="flex h-[calc(100vh-88px)] overflow-hidden">
-            <div class="xl:hidden flex-1 flex items-center justify-center p-6 bg-[#0a0a0f]/60 overflow-hidden">
-                <div class="phone-container" id="mobile-phone-container">
-                    <div class="phone-frame" id="mobile-phone">
-                        <div class="phone-screen" id="phone-screen-mobile">
-                            <div class="dynamic-island"></div>
-                            <div class="status-bar">
-                                <div>9:41</div>
-                                <div class="flex items-center gap-3">
-                                    <i class="fa-solid fa-signal"></i>
-                                    <i class="fa-solid fa-wifi"></i>
-                                    <span>93%</span>
-                                </div>
-                            </div>
-                            <div class="content" id="phone-content-mobile">
-                                <div class="text-center phone-brand-header">
-                                    <div class="mx-auto bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-2xl phone-brand-logo">⚔️</div>
-                                    <h2 class="title-font font-bold tracking-tighter phone-brand-title">KITSERUKI</h2>
-                                    <p class="text-cyan-400 tracking-[4px] phone-brand-sub">EST 2022 • TOKYO / BERLIN</p>
-                                </div>
-                                <div class="space-y-0" id="phone-menu-mobile"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="hidden xl:flex w-5/12 border-r border-white/10 blended-left-pane items-center justify-center p-8 overflow-hidden">
-                <div class="phone-container" id="desktop-phone-container">
-                    <div class="phone-frame" id="desktop-phone">
-                        <div class="phone-screen" id="phone-screen-desktop">
-                            <div class="dynamic-island"></div>
-                            <div class="status-bar">
-                                <div>9:41</div>
-                                <div class="flex items-center gap-3">
-                                    <i class="fa-solid fa-signal"></i>
-                                    <i class="fa-solid fa-wifi"></i>
-                                    <span>93%</span>
-                                </div>
-                            </div>
-                            <div class="content" id="phone-content-desktop">
-                                <div class="text-center phone-brand-header">
-                                    <div class="mx-auto bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-2xl phone-brand-logo">⚔️</div>
-                                    <h2 class="title-font font-bold tracking-tighter phone-brand-title">KITSERUKI</h2>
-                                    <p class="text-cyan-400 tracking-[4px] phone-brand-sub">EST 2022 • TOKYO / BERLIN</p>
-                                </div>
-                                <div class="space-y-0" id="phone-menu-desktop"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex-1 p-8 lg:p-16 xl:p-24" id="content-pane">
-                
-                <div id="section-home" class="section">
-                    <div class="max-w-3xl py-4">
-                        <div class="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-full text-sm mb-10">
-                            <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                            NOW OPEN FOR 2026 COLLABORATIONS
-                        </div>
-                        <h1 class="title-font text-7xl lg:text-[88px] leading-none font-bold tracking-tighter hero-glow">
-                            WE FORGE<br>LEGENDARY<br>EXPERIENCES
-                        </h1>
-                        <p class="mt-10 text-2xl text-zinc-300 max-w-2xl">
-                            A premium gaming and digital studio specializing in immersive worlds, cinematic gameplay, and cutting-edge interactive software.
-                        </p>
-                    </div>
-                </div>
-
-                <div id="section-projects" class="section">
-                    <div class="max-w-3xl py-4">
-                        <h2 class="title-font text-6xl font-bold tracking-tighter mb-10">Our Projects</h2>
-                        <p class="text-zinc-400 text-xl">Immersive standalone experiences currently in production. Details dropping soon.</p>
-                    </div>
-                </div>
-
-                <div id="section-contact" class="section">
-                    <div class="max-w-lg py-4">
-                        <h2 class="title-font text-6xl font-bold tracking-tighter mb-8">Let's Create</h2>
-                        <a href="mailto:hello@kitseruki.com" class="block text-4xl text-cyan-400 hover:text-white transition-colors title-font font-medium tracking-tight">hello@kitseruki.com</a>
-                    </div>
-                </div>
-
-                <div id="section-donate" class="section">
-                    <div class="max-w-lg py-4">
-                        <h2 class="title-font text-6xl font-bold tracking-tighter mb-8">Support Our Vision</h2>
-                        <p class="text-zinc-300 text-lg mb-8">Help us continue crafting high-fidelity interactive digital pipelines.</p>
-                        <button class="px-10 py-4 bg-gradient-to-r from-cyan-400 to-violet-500 text-black font-semibold rounded-2xl text-md tracking-wide transition-transform active:scale-95">
-                            Donate Now
-                        </button>
-                    </div>
-                </div>
-
-                <div id="section-boring" class="section">
-                    <div class="max-w-3xl py-4">
-                        <h2 class="title-font text-5xl font-bold tracking-tighter mb-8">The Boring Stuff</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-md leading-relaxed">
-                            <div>
-                                <h3 class="text-lg font-semibold text-cyan-400 mb-2">Legal</h3>
-                                <p class="text-zinc-400">Privacy Policy &bull; Terms of Service &bull; Cookies</p>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-cyan-400 mb-2">Company</h3>
-                                <p class="text-zinc-400">Kitseruki Studio &bull; Tokyo / Berlin Studio Hubs</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+<div class="ui" id="main-ui">
+    <aside class="panel" id="nav-panel">
+        <h1>
+            <span style="position: relative; display: inline-block;">
+                <canvas id="logo-canvas" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: -1;"></canvas>
+                <span style="position: relative; z-index: 2;">K</span>
+            </span>itseruki D-VSN
+        </h1>
+        <div class="nav-container">
+            <div class="nav-item" data-action="warp" data-hover="About Kitseruki">01_INIT_SEQUENCE</div>
+            <div class="nav-item" data-action="archive" data-hover="Projects & Apps">02_PROJEKT_ARCHIVE</div>
+            <div class="nav-item" data-action="compliance" data-hover="Terms and Policies">03_COMPLIANCE_MATRIX</div>
+            <div class="nav-item" data-action="uplink" data-hover="Contact">04_UPLINK_COMM</div>
         </div>
-    </div>
+    </aside>
+    <div></div>
+    <aside class="panel" style="justify-content: flex-end; align-items: flex-end; text-align: right;">
+        <div class="status">SYSTEM_ACTIVE</div>
+    </aside>
+</div>
 
-    <script>
-        // === THREE.JS BACKGROUND ===
-        let scene, camera, renderer, particles;
-        let mouseX = 0, mouseY = 0;
-        let targetRotY = 0, targetRotX = 0;
+<div id="content-layer"></div>
 
-        function createParticleTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 64; canvas.height = 64;
-            const ctx = canvas.getContext('2d');
-            const grad = ctx.createRadialGradient(32, 32, 4, 32, 32, 32);
-            grad.addColorStop(0, 'rgba(255,255,255,1)');
-            grad.addColorStop(0.6, 'rgba(100,240,255,0.9)');
-            grad.addColorStop(1, 'rgba(0,180,255,0)');
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(32, 32, 30, 0, Math.PI * 2);
-            ctx.fill();
-            return new THREE.CanvasTexture(canvas);
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+    // 0. Procedural Audio Engine
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    document.body.addEventListener('click', () => {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
         }
+    }, { once: true });
 
-        function initWebGL() {
-            const canvas = document.getElementById('webgl-background');
-            renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.2));
-            renderer.setSize(window.innerWidth, window.innerHeight);
-
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
-            camera.position.z = 38;
-
-            const count = 1600;
-            const positions = new Float32Array(count * 3);
-            const colors = new Float32Array(count * 3);
-
-            for (let i = 0; i < count * 3; i += 3) {
-                positions[i]     = (Math.random() - 0.5) * 120;
-                positions[i + 1] = (Math.random() - 0.5) * 110;
-                positions[i + 2] = (Math.random() - 0.5) * 90;
-
-                const hue = 0.48 + Math.random() * 0.18;
-                const color = new THREE.Color().setHSL(hue, 0.9, 0.75);
-                colors[i] = color.r;
-                colors[i+1] = color.g;
-                colors[i+2] = color.b;
-            }
-
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-            const material = new THREE.PointsMaterial({
-                size: 1.1,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.75,
-                blending: THREE.AdditiveBlending,
-                depthTest: false,
-                map: createParticleTexture(),
-                alphaTest: 0.15
-            });
-
-            particles = new THREE.Points(geometry, material);
-            scene.add(particles);
-
-            function animate() {
-                requestAnimationFrame(animate);
-
-                targetRotY = mouseX * 0.28;
-                targetRotX = mouseY * 0.22;
-
-                particles.rotation.y = particles.rotation.y * 0.93 + targetRotY * 0.07;
-                particles.rotation.x = particles.rotation.x * 0.93 + targetRotX * 0.07;
-
-                renderer.render(scene, camera);
-            }
-            animate();
-        }
-
-        // === PHONE SCALING ===
-        function scalePhoneMockups() {
-            const containers = [
-                { container: 'desktop-phone-container', phone: 'desktop-phone' },
-                { container: 'mobile-phone-container', phone: 'mobile-phone' }
-            ];
-
-            containers.forEach(({ container, phone }) => {
-                const parent = document.getElementById(container);
-                const child = document.getElementById(phone);
-                if (!parent || !child) return;
-
-                const rect = parent.getBoundingClientRect();
-                const scaleX = rect.width / 360;
-                const scaleY = rect.height / 740;
-                let scale = Math.min(scaleX, scaleY, 1.05);
-
-                child.style.transform = `scale(${scale})`;
-            });
-        }
-
-        // === MENU & NAV ===
-        const menuItems = [
-            { id: "home", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 9L12 3L21 9V21H3V9Z" fill="#0ea5e9" stroke="#67e8f9" stroke-width="1.5"/><path d="M9 21V13H15V21" stroke="#67e8f9" stroke-width="1.5"/></svg>`, title: "Home", subtitle: "Studio Vision" },
-            { id: "projects", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6H20V18H4V6Z" fill="#8b5cf6" stroke="#c4b5fd" stroke-width="1.5"/><path d="M8 10H16M8 14H12" stroke="#c4b5fd" stroke-width="1.5"/></svg>`, title: "Projects", subtitle: "Our Work" },
-            { id: "contact", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8L12 13L21 8V19H3V8Z" fill="#ec4899" stroke="#f9a8d4" stroke-width="1.5"/><path d="M3 8L12 13L21 8" stroke="#f9a8d4" stroke-width="1.5"/></svg>`, title: "Contact", subtitle: "Get in Touch" },
-            { id: "donate", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21L3 9H21L12 21Z" fill="#eab308" stroke="#fef08c" stroke-width="1.5"/><circle cx="12" cy="8" r="4" fill="#fef08c" opacity="0.9"/></svg>`, title: "Donate", subtitle: "Support Us" },
-            { id: "boring", svg: `<svg class="icon-3d" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#64748b" stroke="#cbd5e1" stroke-width="1.5"/><path d="M14 2V8H20" stroke="#cbd5e1" stroke-width="1.5"/><path d="M9 13H15M9 17H12" stroke="#cbd5e1" stroke-width="1.5"/></svg>`, title: "The Boring Stuff", subtitle: "Legal & Info" }
-        ];
+    function playHoverClick() {
+        if (audioCtx.state === 'suspended') return;
         
-        let currentIndex = 0;
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
 
-        function createPhoneMenu(containerId) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            container.innerHTML = '';
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime); 
 
-            menuItems.forEach(item => {
-                const el = document.createElement('a');
-                el.href = "#";
-                el.className = `nav-item flex items-center group bg-white/5 ${item.id === 'home' ? 'active' : ''}`;
-                el.dataset.section = item.id;
-                el.innerHTML = `
-                    <div class="flex-shrink-0">${item.svg}</div>
-                    <div>
-                        <div class="font-semibold nav-item-title text-white">${item.title}</div>
-                        <div class="text-zinc-400 text-xs">${item.subtitle}</div>
-                    </div>
-                `;
-                el.addEventListener('click', e => {
-                    e.preventDefault();
-                    if (navigator.vibrate) navigator.vibrate(12);
-                    switchSection(item.id);
-                });
-                container.appendChild(el);
-            });
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+    }
+
+    // Hash Update Router
+    function updateHash(hashPath) {
+        if (history.replaceState) {
+            history.replaceState(null, null, hashPath ? '#' + hashPath : window.location.pathname);
+        }
+    }
+
+    // 1. Scene Setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 400);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // 2. Symbiote / Organic Geometry Setup
+    const symbioteGeom = new THREE.IcosahedronGeometry(120, 64);
+
+    const symbioteVertexShader = `
+        uniform float uTime;
+        uniform vec2 uMouse;
+        
+        varying vec3 vNormal;
+        varying vec3 vViewPosition;
+        varying float vNoise;
+        varying float vMouseForce;
+        varying vec3 vWorldPos;
+
+        vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+        vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+        float snoise(vec3 v) {
+            const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+            const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+            vec3 i  = floor(v + dot(v, C.yyy));
+            vec3 x0 = v - i + dot(i, C.xxx);
+            vec3 g = step(x0.yzx, x0.xyz);
+            vec3 l = 1.0 - g;
+            vec3 i1 = min( g.xyz, l.zxy );
+            vec3 i2 = max( g.xyz, l.zxy );
+            vec3 x1 = x0 - i1 + C.xxx;
+            vec3 x2 = x0 - i2 + C.yyy;
+            vec3 x3 = x0 - D.yyy;
+            i = mod289(i);
+            vec4 p = permute( permute( permute( 
+                        i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+                      + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
+                      + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+            float n_ = 0.142857142857;
+            vec3  ns = n_ * D.wyz - D.xzx;
+            vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+            vec4 x_ = floor(j * ns.z);
+            vec4 y_ = floor(j - 7.0 * x_ );
+            vec4 x = x_ *ns.x + ns.yyyy;
+            vec4 y = y_ *ns.x + ns.yyyy;
+            vec4 h = 1.0 - abs(x) - abs(y);
+            vec4 b0 = vec4( x.xy, y.xy );
+            vec4 b1 = vec4( x.zw, y.zw );
+            vec4 s0 = floor(b0)*2.0 + 1.0;
+            vec4 s1 = floor(b1)*2.0 + 1.0;
+            vec4 sh = -step(h, vec4(0.0));
+            vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+            vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+            vec3 p0 = vec3(a0.xy,h.x);
+            vec3 p1 = vec3(a0.zw,h.y);
+            vec3 p2 = vec3(a1.xy,h.z);
+            vec3 p3 = vec3(a1.zw,h.w);
+            vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+            p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+            vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+            m = m * m;
+            return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
         }
 
-        function switchSection(sectionId) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            const target = document.getElementById(`section-${sectionId}`);
-            if (target) {
-                target.classList.add('active');
-                document.getElementById('content-pane').scrollTo({ top: 0, behavior: 'instant' });
+        void main() {
+            vec3 pos = position;
+            
+            float n1 = snoise(pos * 0.02 + uTime * 0.3);
+            float n2 = snoise(pos * 0.05 - uTime * 0.5);
+            float combinedNoise = (n1 * 0.7) + (n2 * 0.3);
+            vNoise = combinedNoise;
+
+            vec4 tempMvPos = modelViewMatrix * vec4(pos, 1.0);
+            vec4 tempScreenPos = projectionMatrix * tempMvPos;
+            vec2 ndc = tempScreenPos.xy / tempScreenPos.w;
+            
+            float mouseDist = length(ndc - uMouse);
+            float mouseForce = smoothstep(0.8, 0.0, mouseDist);
+            vMouseForce = mouseForce;
+            
+            vec3 inwardsNormal = -normal;
+            float displacement = (combinedNoise * 18.0) + (mouseForce * 25.0);
+            pos += inwardsNormal * displacement;
+
+            vWorldPos = pos;
+            vNormal = normalMatrix * inwardsNormal;
+            
+            vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+            vViewPosition = -mvPosition.xyz;
+            
+            gl_Position = projectionMatrix * mvPosition;
+        }
+    `;
+
+    const symbioteFragmentShader = `
+        uniform vec3 uColorA;
+        uniform vec3 uColorB;
+        uniform float uTime;
+        
+        varying vec3 vNormal;
+        varying vec3 vViewPosition;
+        varying float vNoise;
+        varying float vMouseForce;
+        varying vec3 vWorldPos;
+
+        void main() {
+            vec3 normal = normalize(vNormal);
+            vec3 viewDir = normalize(vViewPosition);
+            
+            normal = normalize(normal + vec3(vNoise * 0.25));
+
+            vec3 lightDir = normalize(vec3(0.5, 1.0, 1.0));
+            float diff = max(dot(normal, lightDir), 0.0);
+            
+            vec3 halfVector = normalize(lightDir + viewDir);
+            float spec = pow(max(dot(normal, halfVector), 0.0), 80.0); 
+            
+            float rim = 1.0 - max(dot(viewDir, normal), 0.0);
+            rim = smoothstep(0.5, 1.0, rim);
+            
+            vec3 baseColor = vec3(0.01, 0.01, 0.012);
+            vec3 reactionColor = mix(uColorA, uColorB, vNoise * 0.5 + 0.5);
+            
+            vec3 glow = reactionColor * (vMouseForce * 1.8 + rim * 0.5 + spec * 2.5);
+            
+            float crevice = smoothstep(0.2, -0.6, vNoise);
+            vec3 subsurface = reactionColor * crevice * 0.8;
+
+            vec3 finalColor = baseColor + glow + subsurface;
+            
+            float depth = gl_FragCoord.z / gl_FragCoord.w;
+            float fogFactor = smoothstep(40.0, 180.0, depth);
+            finalColor = mix(finalColor, vec3(0.0), fogFactor);
+
+            gl_FragColor = vec4(finalColor, 1.0);
+        }
+    `;
+
+    const sharedUniforms = {
+        uTime: { value: 0 },
+        uMouse: { value: new THREE.Vector2(0, 0) },
+        uColorA: { value: new THREE.Color(0x1144ff) },
+        uColorB: { value: new THREE.Color(0xff2288) }
+    };
+
+    const symbioteMat = new THREE.ShaderMaterial({
+        uniforms: sharedUniforms,
+        vertexShader: symbioteVertexShader,
+        fragmentShader: symbioteFragmentShader,
+        side: THREE.BackSide, 
+        transparent: true
+    });
+
+    const symbioteMesh = new THREE.Mesh(symbioteGeom, symbioteMat);
+    scene.add(symbioteMesh);
+
+    // 3. Variables & Cursor States
+    const cursorCanvas = document.getElementById('custom-cursor');
+    const ctx = cursorCanvas.getContext('2d');
+    cursorCanvas.width = 96; cursorCanvas.height = 96;
+
+    const logoCanvas = document.getElementById('logo-canvas');
+    const logoCtx = logoCanvas.getContext('2d');
+    logoCanvas.width = 128; logoCanvas.height = 128;
+
+    let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+    let cursorX = mouseX, cursorY = mouseY;
+    let sphereSpin = 0;
+    let isHovering = false, systemState = 'MENU';
+    let hoverProgress = 0;
+
+    window.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+
+    function bindCursor(el) {
+        const defaultText = el.innerText;
+        const hoverText = el.getAttribute('data-hover');
+
+        el.addEventListener('mouseenter', () => { 
+            isHovering = true; 
+            playHoverClick(); 
+            if(hoverText) el.innerText = hoverText;
+        });
+        el.addEventListener('mouseleave', () => { 
+            isHovering = false; 
+            if(hoverText) el.innerText = defaultText;
+        });
+    }
+    document.querySelectorAll('.nav-item, .return-btn').forEach(bindCursor);
+
+    let targetZ = 0, speedMult = 1.0, currentSpeed = 1.0;
+    let cameraShake = 0, simTime = 0;
+    let targetColorA = new THREE.Color(0x1144ff), targetColorB = new THREE.Color(0xff2288);
+    camera.position.z = targetZ;
+
+    const clock = new THREE.Clock();
+    const navPanel = document.getElementById('nav-panel');
+    const mainUI = document.getElementById('main-ui');
+    const contentLayer = document.getElementById('content-layer');
+    let targetRotX = 0, targetRotY = 0, currentRotX = 0, currentRotY = 0;
+
+    // 4. Transition Pipelines
+    function returnToCore() {
+        systemState = 'MENU';
+        updateHash('');
+        targetZ = 0; speedMult = 1.0; cameraShake = 0;
+        targetColorA.setHex(0x1144ff); targetColorB.setHex(0xff2288);
+        contentLayer.classList.remove('visible');
+        mainUI.className = 'ui';
+        setTimeout(() => { contentLayer.innerHTML = ''; }, 1000);
+    }
+
+    function createReturnButton() {
+        const btn = document.createElement('button');
+        btn.className = 'return-btn'; btn.innerText = 'RETURN_TO_CORE';
+        bindCursor(btn);
+        btn.addEventListener('click', returnToCore);
+        return btn;
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (systemState !== 'MENU') return;
+            const action = e.target.dataset.action;
+            systemState = action;
+            isHovering = false;
+
+            if (action === 'warp') {
+                updateHash('INIT_SEQUENCE');
+                mainUI.classList.add('transition-warp');
+                targetZ = -40; speedMult = 6.0; 
+                setTimeout(() => {
+                    contentLayer.innerHTML = '<div class="content-title">01 // INIT_SEQUENCE_ACTIVE</div>';
+                    contentLayer.appendChild(createReturnButton());
+                    contentLayer.classList.add('visible');
+                }, 1000);
+            } 
+            else if (action === 'archive') {
+                updateHash('PROJEKT_ARCHIVE');
+                mainUI.classList.add('transition-warp'); 
+                targetZ = -20; speedMult = 3.0; 
+                targetColorA.setHex(0x00ffff); targetColorB.setHex(0xffffff); 
+                
+                setTimeout(() => {
+                    contentLayer.innerHTML = `
+                        <div class="content-title" style="color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.4);">PROJEKT_ARCHIVE</div>
+                        <div class="archive-deck">
+                            <div class="archive-card">
+                                <div class="card-title">01 // ALPHA</div>
+                                <div class="card-content">
+                                    DATA_STREAM_ESTABLISHED. PREPARING ASSETS.
+                                    <div class="placeholder-img">[ VISUAL_DATA_MISSING ]</div>
+                                </div>
+                            </div>
+                            <div class="archive-card">
+                                <div class="card-title">02 // BETA</div>
+                                <div class="card-content">
+                                    DATA_STREAM_ESTABLISHED. PREPARING ASSETS.
+                                    <div class="placeholder-img">[ VISUAL_DATA_MISSING ]</div>
+                                </div>
+                            </div>
+                            <div class="archive-card">
+                                <div class="card-title">03 // GAMMA</div>
+                                <div class="card-content">
+                                    DATA_STREAM_ESTABLISHED. PREPARING ASSETS.
+                                    <div class="placeholder-img">[ VISUAL_DATA_MISSING ]</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    contentLayer.appendChild(createReturnButton());
+                    contentLayer.classList.add('visible');
+                    
+                    contentLayer.querySelectorAll('.archive-card').forEach(bindCursor);
+                }, 1000);
             }
+            else if (action === 'compliance') {
+                updateHash('COMPLIANCE_MATRIX');
+                mainUI.classList.add('transition-lift'); 
+                targetZ = 60; speedMult = 0.2; 
+                targetColorA.setHex(0x00ff88); targetColorB.setHex(0x005522); 
+                
+                setTimeout(() => {
+                    contentLayer.innerHTML = `
+                        <div id="documents" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                            <div class="content-title" style="color: #00ff88; text-shadow: 0 0 20px rgba(0,255,136,0.4);">
+                                COMPLIANCE_MATRIX <span style="font-size: 0.4em; vertical-align: middle; opacity: 0.6; letter-spacing: 0.1rem;">// SYS_DOCS</span>
+                            </div>
+                            <div class="compliance-grid">
+                                <div class="compliance-row">
+                                    <div class="compliance-row-title">TERMS_OF_USE.SYS</div>
+                                    <div class="compliance-row-status">[ VERIFIED ]</div>
+                                </div>
+                                <div class="compliance-row">
+                                    <div class="compliance-row-title">END_USER_LICENSE.DAT</div>
+                                    <div class="compliance-row-status">[ VERIFIED ]</div>
+                                </div>
+                                <div class="compliance-row">
+                                    <div class="compliance-row-title">PRIVACY_PROTOCOL.LOG</div>
+                                    <div class="compliance-row-status">[ ENCRYPTED ]</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    contentLayer.appendChild(createReturnButton());
+                    contentLayer.classList.add('visible');
+                    
+                    contentLayer.querySelectorAll('.compliance-row').forEach(bindCursor);
+                }, 1000);
+            }
+            else if (action === 'uplink') {
+                updateHash('UPLINK_COMM');
+                mainUI.classList.add('transition-drop');
+                targetZ = -10; speedMult = 12.0; cameraShake = 1.5;
+                targetColorA.setHex(0xff0000); targetColorB.setHex(0xff4400); 
+                setTimeout(() => {
+                    contentLayer.innerHTML = '<div class="content-title glitch-text" data-text="SYSTEM_OVERRIDE">SYSTEM_OVERRIDE</div>';
+                    contentLayer.appendChild(createReturnButton());
+                    contentLayer.classList.add('visible');
+                }, 800);
+            }
+        });
+    });
 
-            document.querySelectorAll('#phone-menu-mobile, #phone-menu-desktop').forEach(menu => {
-                if (!menu) return;
-                menu.querySelectorAll('a').forEach(link => {
-                    link.classList.toggle('active', link.dataset.section === sectionId);
-                });
-            });
-            currentIndex = menuItems.findIndex(item => item.id === sectionId);
+    // 5. Render Loop
+    function animate() {
+        requestAnimationFrame(animate);
+        const delta = clock.getDelta();
+
+        // Cursor Physics & Lerping
+        const lerpFactor = isHovering ? 0.6 : 0.15;
+        cursorX += (mouseX - cursorX) * lerpFactor;
+        cursorY += (mouseY - cursorY) * lerpFactor;
+        cursorCanvas.style.transform = `translate3d(${cursorX - 48}px, ${cursorY - 48}px, 0)`;
+
+        // Update Shader Mouse Coordinates
+        const normMouseX = (mouseX / window.innerWidth) * 2 - 1;
+        const normMouseY = -(mouseY / window.innerHeight) * 2 + 1;
+        sharedUniforms.uMouse.value.set(normMouseX, normMouseY);
+
+        // Dynamic Cursor Rendering
+        hoverProgress += ((isHovering ? 1 : 0) - hoverProgress) * 0.15;
+        ctx.clearRect(0, 0, 96, 96);
+        const center = 48;
+
+        sphereSpin += delta * (2.5 + hoverProgress * 5.0);
+
+        const r = Math.round(255 - (255 * hoverProgress));
+        const g = 255; 
+        const b = Math.round(255 - (119 * hoverProgress));
+        const colorStr = `rgba(${r}, ${g}, ${b}`;
+
+        const orbit = 16 + (8 * hoverProgress);
+        const sSize = 2 + (1.5 * hoverProgress);
+        
+        const points = [];
+        for(let i = 0; i < 3; i++) {
+            const angle = sphereSpin + (i * (Math.PI * 2 / 3));
+            points.push({ x: center + Math.cos(angle) * orbit, y: center + Math.sin(angle) * orbit });
         }
 
-        function addSwipeNavigation(screenId) {
-            const screen = document.getElementById(screenId);
-            if (!screen) return;
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        ctx.lineTo(points[1].x, points[1].y);
+        ctx.lineTo(points[2].x, points[2].y);
+        ctx.closePath();
+        ctx.strokeStyle = `${colorStr}, ${0.15 + (0.35 * hoverProgress)})`;
+        ctx.lineWidth = 1 + (0.5 * hoverProgress);
+        ctx.stroke();
 
-            let startX = 0;
-            screen.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX, { passive: true });
-            screen.addEventListener('touchend', e => {
-                const diff = startX - e.changedTouches[0].screenX;
-                if (Math.abs(diff) < 80) return;
+        ctx.fillStyle = `${colorStr}, 1)`;
+        ctx.shadowBlur = 12 + (8 * hoverProgress);
+        ctx.shadowColor = `rgb(${r}, ${g}, ${b})`;
 
-                if (navigator.vibrate) navigator.vibrate([20, 10]);
-                if (diff > 0) {
-                    currentIndex = (currentIndex + 1) % menuItems.length;
-                } else {
-                    currentIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
-                }
-                switchSection(menuItems[currentIndex].id);
-            });
+        for(let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.arc(points[i].x, points[i].y, sSize, 0, Math.PI * 2);
+            ctx.fill();
         }
 
-        let resizeTimeout;
-        function handleResize() {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                if (camera && renderer) {
-                    camera.aspect = window.innerWidth / window.innerHeight;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                }
-                scalePhoneMockups();
-            }, 80);
+        if (hoverProgress > 0.05) {
+            ctx.fillStyle = `${colorStr}, ${hoverProgress})`;
+            ctx.beginPath(); 
+            ctx.arc(center, center, 1.5 * hoverProgress, 0, Math.PI * 2); 
+            ctx.fill();
         }
 
-        window.onload = () => {
-            initWebGL();
-            createPhoneMenu('phone-menu-mobile');
-            createPhoneMenu('phone-menu-desktop');
-            switchSection('home');
-            addSwipeNavigation('phone-screen-mobile');
-            addSwipeNavigation('phone-screen-desktop');
+        // ----------------------------------------------------
+        // Logo Background Geometry Rendering
+        // ----------------------------------------------------
+        logoCtx.clearRect(0, 0, 128, 128);
+        const lCenter = 64;
+        const lOrbit = 24; 
+        const lSize = 2.5;
+        const lSpin = simTime * 1.5; 
+        
+        const lPoints = [];
+        for(let i = 0; i < 3; i++) {
+            const angle = lSpin + (i * (Math.PI * 2 / 3));
+            lPoints.push({ x: lCenter + Math.cos(angle) * lOrbit, y: lCenter + Math.sin(angle) * lOrbit });
+        }
 
-            scalePhoneMockups();
+        logoCtx.beginPath();
+        logoCtx.moveTo(lPoints[0].x, lPoints[0].y);
+        logoCtx.lineTo(lPoints[1].x, lPoints[1].y);
+        logoCtx.lineTo(lPoints[2].x, lPoints[2].y);
+        logoCtx.closePath();
+        logoCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        logoCtx.lineWidth = 1.5;
+        logoCtx.stroke();
 
-            window.addEventListener('mousemove', e => {
-                mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-                mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-            });
+        logoCtx.fillStyle = 'rgba(255, 255, 255, 1)';
+        logoCtx.shadowBlur = 15;
+        logoCtx.shadowColor = '#ffffff';
 
-            window.addEventListener('resize', handleResize);
-        };
-    </script>
+        for(let i = 0; i < 3; i++) {
+            logoCtx.beginPath();
+            logoCtx.arc(lPoints[i].x, lPoints[i].y, lSize, 0, Math.PI * 2);
+            logoCtx.fill();
+        }
+
+        // ----------------------------------------------------
+        // UI Parallax & Camera Physics
+        // ----------------------------------------------------
+        if (systemState === 'MENU') {
+            targetRotY = normMouseX * 12; targetRotX = -normMouseY * 12;
+            currentRotY += (targetRotY - currentRotY) * 0.05;
+            currentRotX += (targetRotX - currentRotX) * 0.05;
+            navPanel.style.transform = `rotateY(${currentRotY}deg) rotateX(${currentRotX}deg)`;
+        }
+
+        camera.position.z += (targetZ - camera.position.z) * 0.02;
+        if (cameraShake > 0.01) {
+            camera.position.x = (Math.random() - 0.5) * cameraShake;
+            camera.position.y = (Math.random() - 0.5) * cameraShake;
+            if (systemState !== 'uplink') cameraShake *= 0.9; 
+        } else {
+            camera.position.x += (0 - camera.position.x) * 0.1;
+            camera.position.y += (0 - camera.position.y) * 0.1;
+        }
+
+        symbioteMesh.rotation.y += (normMouseX * 0.2 - symbioteMesh.rotation.y) * 0.02 + 0.001;
+        symbioteMesh.rotation.x += (-normMouseY * 0.2 - symbioteMesh.rotation.x) * 0.02;
+
+        // Symbiote Biological Pulse Dynamics
+        currentSpeed += (speedMult - currentSpeed) * 0.03;
+        simTime += delta * currentSpeed;
+        sharedUniforms.uTime.value = simTime;
+        sharedUniforms.uColorA.value.lerp(targetColorA, 0.03);
+        sharedUniforms.uColorB.value.lerp(targetColorB, 0.03);
+
+        renderer.render(scene, camera);
+    }
+    animate();
+</script>
 </body>
 </html>
