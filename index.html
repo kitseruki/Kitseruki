@@ -54,7 +54,7 @@
         h1 { 
             font-size: 1.1rem; letter-spacing: 0.3rem; font-weight: 600; margin: 0; 
             text-transform: uppercase; text-shadow: 0 0 20px rgba(255,255,255,0.3);
-            white-space: nowrap; display: flex; align-items: center; /* Forces single line alignment */
+            white-space: nowrap; display: flex; align-items: center;
         }
 
         .nav-container { margin-top: 4rem; display: flex; flex-direction: column; gap: 1rem; }
@@ -161,7 +161,8 @@
             padding: 1.2rem; font-family: 'Inter', sans-serif; letter-spacing: 0.2rem; 
             cursor: none; text-transform: uppercase; transition: all 0.3s; margin-top: 1rem; font-weight: 600;
         }
-        .submit-btn:hover { background: #ff4400; color: #000; box-shadow: 0 0 20px #ff4400; }
+        .submit-btn:hover:not(:disabled) { background: #ff4400; color: #000; box-shadow: 0 0 20px #ff4400; }
+        .submit-btn:disabled { opacity: 0.5; border-color: rgba(255, 68, 0, 0.3); color: rgba(255, 68, 0, 0.5); background: transparent; }
 
         /* Glitch Animation System */
         @keyframes glitch-anim {
@@ -609,7 +610,7 @@
                     contentLayer.innerHTML = `
                         <div class="uplink-container">
                             <div class="content-title glitch-text" data-text="SECURE_UPLINK" style="margin-bottom: 0;">SECURE_UPLINK</div>
-                            <form class="uplink-form" action="/api/contact" method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <form class="uplink-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
                                 <div class="input-group">
                                     <label>TRANSMITTER_ID [EMAIL]</label>
                                     <input type="email" name="email" required autocomplete="off" />
@@ -761,14 +762,14 @@
     }
     animate();
 </script>
-<!-- Add this isolated block at the very bottom of your HTML, right before </body> -->
+
 <script type="module">
   // 1. Import Firebase SDKs from CDN
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
   import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 
-  // 2. Your specific Firebase Configuration
+  // 2. Specific Firebase Configuration
   const firebaseConfig = {
     apiKey: "AIzaSyBgpLbHyFOv9JFa1rbhILM1007KvR5mgP4", 
     authDomain: "kitseruki-d-vsn.firebaseapp.com",
@@ -784,7 +785,7 @@
 
   // 4. Initialize App Check with your reCAPTCHA site key
   const appCheck = initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_SITE_KEY'), // Replace with your reCAPTCHA Site Key
+    provider: new ReCaptchaV3Provider('6LclbVwtAAAAAGvHCukmv4To1KZ9Ku5bSydqGvtd'), 
     isTokenAutoRefreshEnabled: true
   });
 
@@ -804,12 +805,12 @@
 
           if (!emailInput || !messageInput || !submitBtn) return;
 
-          // Visual state feedback matching your UI theme
+          // Visual state feedback matching UI theme
           submitBtn.innerText = "TRANSFERRING...";
           submitBtn.disabled = true;
 
           try {
-            // Write contact message payload to your Firestore native database
+            // Write contact message payload to Firestore database
             await addDoc(collection(db, "contact_messages"), {
               email: emailInput.value,
               message: messageInput.value,
@@ -827,7 +828,7 @@
       }
     };
 
-    // Watch the content-layer because your form is injected dynamically on navigation
+    // Watch the content-layer because form is injected dynamically on navigation
     const observer = new MutationObserver(observeForm);
     const target = document.getElementById('content-layer');
     if (target) {
