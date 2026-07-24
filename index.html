@@ -112,15 +112,15 @@
             content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,255,255,0.05) 0%, transparent 100%);
             opacity: 0; transition: opacity 0.5s ease; pointer-events: none;
         }
-        .archive-card:hover, .archive-card:active {
+        .archive-card:hover, .archive-card:active, .archive-card.is-open {
             flex: 3; background: rgba(0, 15, 25, 0.6); border-color: rgba(0, 255, 255, 0.6);
             box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,255,255,0.1);
         }
-        .archive-card:hover::before { opacity: 1; }
+        .archive-card:hover::before, .archive-card.is-open::before { opacity: 1; }
         .card-title { font-size: 1.2rem; letter-spacing: 0.3rem; font-weight: 300; color: rgba(0, 255, 255, 0.5); transition: all 0.5s ease; white-space: nowrap; transform: rotate(-90deg); position: absolute; }
-        .archive-card:hover .card-title { transform: rotate(0deg) translateY(-40%); color: #00ffff; text-shadow: 0 0 15px rgba(0,255,255,0.5); top: 3rem; position: absolute; }
+        .archive-card:hover .card-title, .archive-card.is-open .card-title { transform: rotate(0deg) translateY(-40%); color: #00ffff; text-shadow: 0 0 15px rgba(0,255,255,0.5); top: 3rem; position: absolute; }
         .card-content { opacity: 0; transform: translateY(20px); transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1); width: 80%; height: 60%; margin-top: 4rem; display: flex; flex-direction: column; border-top: 1px solid rgba(0,255,255,0.2); padding-top: 2rem; color: rgba(255,255,255,0.8); font-size: 0.9rem; letter-spacing: 0.1rem; line-height: 1.6; pointer-events: none; }
-        .archive-card:hover .card-content { opacity: 1; transform: translateY(0); transition-delay: 0.2s; }
+        .archive-card:hover .card-content, .archive-card.is-open .card-content { opacity: 1; transform: translateY(0); transition-delay: 0.2s; }
         
         /* Project Display Classes */
         .proj-text-container {
@@ -144,16 +144,16 @@
 
         /* Specialized Archive Sub-Styles */
         .redacted-block { background: #00ffff; color: #00ffff; display: inline-block; line-height: 1; padding: 0 0.2rem; margin: 0 0.1rem; transition: all 0.3s; }
-        .redacted-card:hover .redacted-block { background: #fff; color: #fff; }
+        .redacted-card:hover .redacted-block, .redacted-card.is-open .redacted-block { background: #fff; color: #fff; }
         .img-redacted { background: #000; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border-color: rgba(0,255,255,0.4); box-shadow: none; }
         .img-redacted::after { content: 'REDACTED'; color: #00ffff; border: 2px solid #00ffff; padding: 0.5rem 2rem; transform: rotate(-10deg); font-weight: 600; letter-spacing: 0.4rem; background: rgba(0,0,0,0.8); z-index: 2; box-shadow: 0 0 20px rgba(0,255,255,0.2); }
         .img-redacted::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, rgba(0,255,255,0.05), rgba(0,255,255,0.05) 2px, transparent 2px, transparent 8px); z-index: 1; }
         
         .corrupt-card { border-color: rgba(255, 0, 85, 0.15); box-shadow: inset 0 0 0 1px rgba(255,0,85,0.05); }
         .corrupt-card::before { background: linear-gradient(180deg, rgba(255,0,85,0.05) 0%, transparent 100%); }
-        .corrupt-card:hover, .corrupt-card:active { border-color: rgba(255, 0, 85, 0.6); box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,0,85,0.1); }
+        .corrupt-card:hover, .corrupt-card:active, .corrupt-card.is-open { border-color: rgba(255, 0, 85, 0.6); box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,0,85,0.1); }
         .corrupt-card .card-title { color: rgba(255, 0, 85, 0.5); }
-        .corrupt-card:hover .card-title { color: #ff0055; text-shadow: 0 0 15px rgba(255,0,85,0.5); }
+        .corrupt-card:hover .card-title, .corrupt-card.is-open .card-title { color: #ff0055; text-shadow: 0 0 15px rgba(255,0,85,0.5); }
         .corrupt-card .card-content { border-top-color: rgba(255,0,85,0.2); }
         .corrupt-text { font-family: monospace; color: #ff0055; text-shadow: 2px 0 rgba(0,255,255,0.5), -2px 0 rgba(0,255,0,0.5); animation: glitch-anim-heading 2s infinite step-end alternate-reverse; font-weight: 600; font-size: 0.75rem; }
         .img-corrupt { background: #0a0002; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 1px dashed rgba(255,0,85,0.5); box-shadow: inset 0 0 15px rgba(255,0,85,0.2); }
@@ -196,6 +196,16 @@
         .doc-link:hover { color: #000; background: #00ff88; padding-left: 1.5rem; font-weight: 600; box-shadow: 0 0 15px rgba(0,255,136,0.4); }
 
         @keyframes fade-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+        
+        /* Central Document View Box styling */
+        .doc-view-container {
+            width: 80vw; max-width: 900px; height: 60vh; 
+            background: rgba(5, 10, 15, 0.7); border: 1px solid rgba(0, 255, 170, 0.3); 
+            padding: 2.5rem; color: rgba(200,220,255,0.9); font-size: 0.9rem; 
+            overflow-y: auto; line-height: 1.8; font-family: 'Inter', monospace; 
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.6), 0 20px 50px rgba(0,0,0,0.8); 
+            backdrop-filter: blur(12px); cursor: none;
+        }
 
         /* Uplink Comm (Contact Form) System - Updated Lilac/Mint */
         .uplink-container {
@@ -299,17 +309,60 @@
             .panel { width: 100%; padding: 1.5rem; }
             .nav-container { margin-top: 1.5rem; }
             .content-title { font-size: 1.2rem; }
-            .archive-deck { flex-direction: column; height: auto; max-height: 70vh; width: 90vw; overflow-y: auto; }
-            .archive-card { min-height: 140px; flex: none; }
-            .archive-card:hover, .archive-card:active { min-height: 420px; }
-            .archive-card:hover .card-title { transform: rotate(0deg) translateY(-20%); top: 1.5rem; }
-            .card-content { height: auto; max-height: 80%; width: 90%; margin-top: 3.5rem; padding-bottom: 1rem; justify-content: flex-start; }
+            
+            /* Strict Mobile Archive Deck Scaling */
+            .archive-deck { flex-direction: column; height: auto; max-height: 75vh; width: 90vw; overflow-y: auto; overflow-x: hidden; padding-right: 10px; }
+            .archive-card { 
+                min-height: 80px; 
+                height: 80px; 
+                flex: none; 
+                overflow: hidden; 
+                justify-content: flex-start;
+                padding-top: 1.8rem;
+                transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            }
+            .archive-card:hover, .archive-card:active, .archive-card.is-open { 
+                min-height: max-content; 
+                height: auto; 
+                padding-bottom: 2rem; 
+            }
+            .card-title { 
+                transform: rotate(0deg) !important; 
+                position: relative !important; 
+                top: 0 !important; 
+                left: 0 !important;
+                margin: 0 !important;
+                text-align: center;
+            }
+            .archive-card:hover .card-title, .archive-card.is-open .card-title { 
+                transform: rotate(0deg) !important; 
+                top: 0 !important; 
+                margin-bottom: 1rem !important; 
+            }
+            .card-content { 
+                height: auto; 
+                max-height: none; 
+                width: 90%; 
+                margin-top: 1rem; 
+                padding-bottom: 1rem; 
+                justify-content: flex-start; 
+                overflow: visible; 
+                opacity: 0;
+                transition: opacity 0.4s ease;
+            }
+            .archive-card:hover .card-content, .archive-card.is-open .card-content {
+                opacity: 1;
+            }
+            
             .placeholder-img { min-height: 120px; }
             .proj-text-container { max-width: 100%; font-size: 0.8rem; margin-bottom: 1.5rem; }
             .proj-img-container { min-height: 180px; flex: none; height: 180px; }
             .compliance-grid { width: 90vw; }
             .compliance-row { padding: 1rem; }
             .uplink-container { width: 90vw; padding: 1.5rem; }
+            .doc-view-container { width: 95vw; height: 75vh; padding: 1.5rem; font-size: 0.8rem; }
+            .glitch-canvas-primary { width: 200px !important; height: 200px !important; }
+            .glitch-canvas-secondary { width: 120px !important; height: 120px !important; }
         }
     </style>
 </head>
@@ -694,7 +747,7 @@
             contentLayer.innerHTML = `
                 <div id="documents" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
                     <div id="doc-title-container" class="content-title" style="color: #00ffaa; font-size: 1.5rem; text-shadow: 0 0 20px rgba(0,255,170,0.4); min-height: 2rem;"></div>
-                    <div style="width: 80vw; max-width: 900px; height: 60vh; background: rgba(5, 10, 15, 0.7); border: 1px solid rgba(0, 255, 170, 0.3); padding: 2.5rem; color: rgba(200,220,255,0.9); font-size: 0.9rem; overflow-y: auto; line-height: 1.8; font-family: 'Inter', monospace; box-shadow: inset 0 0 30px rgba(0,0,0,0.6), 0 20px 50px rgba(0,0,0,0.8); backdrop-filter: blur(12px); cursor: none;">
+                    <div class="doc-view-container">
                         <div id="doc-loader-container" style="color: #00ffaa; font-weight: 600; white-space: pre-wrap; margin-bottom: 2rem; min-height: 5rem;"></div>
                         <div id="doc-body-container" style="opacity: 0; transform: translateY(10px); transition: all 1s ease; white-space: pre-wrap;">${docContent}</div>
                     </div>
@@ -794,7 +847,15 @@
                     contentLayer.appendChild(createReturnButton());
                     contentLayer.classList.add('visible');
                     
-                    contentLayer.querySelectorAll('.archive-card').forEach(bindCursor);
+                    contentLayer.querySelectorAll('.archive-card').forEach(card => {
+                        bindCursor(card);
+                        // Mobile tap-to-open logic
+                        card.addEventListener('click', function() {
+                            const isOpen = this.classList.contains('is-open');
+                            contentLayer.querySelectorAll('.archive-card').forEach(c => c.classList.remove('is-open'));
+                            if (!isOpen) this.classList.add('is-open');
+                        });
+                    });
                 }, 1000);
             }
             else if (action === 'compliance') {
